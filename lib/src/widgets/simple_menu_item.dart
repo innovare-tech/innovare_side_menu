@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/side_menu_item.dart';
 import '../styles/side_menu_style.dart';
@@ -104,7 +105,16 @@ class SimpleMenuItem extends StatelessWidget {
       );
     }
 
-    return tile;
+    return Semantics(
+      label: item.semanticLabel ?? item.title,
+      button: true,
+      selected: item.isActive,
+      child: _FocusableItem(
+        onTap: item.onTap,
+        style: style,
+        child: tile,
+      ),
+    );
   }
 
   Widget _buildLeading({
@@ -132,6 +142,62 @@ class SimpleMenuItem extends StatelessWidget {
           child: BadgeWidget(badge: item.badge!, style: style),
         ),
       ],
+    );
+  }
+}
+
+class _FocusableItem extends StatefulWidget {
+  final VoidCallback? onTap;
+  final InnovareSideMenuStyle style;
+  final Widget child;
+
+  const _FocusableItem({
+    required this.onTap,
+    required this.style,
+    required this.child,
+  });
+
+  @override
+  State<_FocusableItem> createState() => _FocusableItemState();
+}
+
+class _FocusableItemState extends State<_FocusableItem> {
+  bool _isFocused = false;
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.enter ||
+          event.logicalKey == LogicalKeyboardKey.space) {
+        widget.onTap?.call();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      onFocusChange: (focused) {
+        setState(() => _isFocused = focused);
+      },
+      onKeyEvent: _handleKeyEvent,
+      child: Builder(
+        builder: (context) {
+          if (!_isFocused) return widget.child;
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+              borderRadius: widget.style.itemBorderRadius ?? BorderRadius.circular(4),
+            ),
+            position: DecorationPosition.foreground,
+            child: widget.child,
+          );
+        },
+      ),
     );
   }
 }
