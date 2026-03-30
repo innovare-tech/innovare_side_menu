@@ -8,12 +8,16 @@ class SimpleMenuItem extends StatelessWidget {
   final InnovareSideMenuItem item;
   final InnovareSideMenuStyle style;
   final bool isSubItem;
+  final bool isCollapsed;
+  final Duration transitionDuration;
 
   const SimpleMenuItem({
     super.key,
     required this.item,
     required this.style,
     required this.isSubItem,
+    this.isCollapsed = false,
+    this.transitionDuration = const Duration(milliseconds: 300),
   });
 
   @override
@@ -59,7 +63,7 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemFontWeight
         : style.inactiveItemFontWeight;
 
-    return Container(
+    Widget tile = Container(
       margin: margin,
       decoration: decoration,
       child: ListTile(
@@ -68,15 +72,20 @@ class SimpleMenuItem extends StatelessWidget {
           iconSize: iconSize,
           iconDecoration: iconDecoration,
         ),
-        title: Text(
-          item.title,
-          style: TextStyle(
-            color: textColor,
-            fontSize: fontSize,
-            fontWeight: fontWeight,
+        title: AnimatedOpacity(
+          opacity: isCollapsed ? 0.0 : 1.0,
+          duration: transitionDuration,
+          child: Text(
+            item.title,
+            style: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        trailing: item.trailing,
+        trailing: isCollapsed ? null : item.trailing,
         onTap: item.onTap,
         hoverColor: style.itemHoverColor,
         contentPadding: padding,
@@ -86,6 +95,16 @@ class SimpleMenuItem extends StatelessWidget {
         ),
       ),
     );
+
+    if (isCollapsed) {
+      tile = Tooltip(
+        message: item.tooltip ?? item.title,
+        waitDuration: Duration(milliseconds: 500),
+        child: tile,
+      );
+    }
+
+    return tile;
   }
 
   Widget _buildLeading({

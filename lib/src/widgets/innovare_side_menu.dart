@@ -133,6 +133,12 @@ class InnovareSideMenu extends StatelessWidget {
       );
     }
 
-    return SimpleMenuItem(item: item, style: style, isSubItem: false);
+    return SimpleMenuItem(
+      item: item,
+      style: style,
+      isSubItem: false,
+      isCollapsed: _isCollapsed,
+      transitionDuration: _transitionDuration,
+    );
   }
 }
