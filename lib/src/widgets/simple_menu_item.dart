@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/side_menu_item.dart';
 import '../styles/side_menu_style.dart';
+import 'badge_widget.dart';
 
 class SimpleMenuItem extends StatelessWidget {
   final InnovareSideMenuItem item;
@@ -62,12 +63,11 @@ class SimpleMenuItem extends StatelessWidget {
       margin: margin,
       decoration: decoration,
       child: ListTile(
-        leading: item.customLeading ??
-            Container(
-              padding: isSubItem ? EdgeInsets.all(6) : style.itemIconPadding,
-              decoration: isSubItem ? null : iconDecoration,
-              child: Icon(item.icon, color: iconColor, size: iconSize),
-            ),
+        leading: item.customLeading ?? _buildLeading(
+          iconColor: iconColor,
+          iconSize: iconSize,
+          iconDecoration: iconDecoration,
+        ),
         title: Text(
           item.title,
           style: TextStyle(
@@ -85,6 +85,34 @@ class SimpleMenuItem extends StatelessWidget {
           borderRadius: borderRadius ?? BorderRadius.zero,
         ),
       ),
+    );
+  }
+
+  Widget _buildLeading({
+    required Color? iconColor,
+    required double? iconSize,
+    required BoxDecoration? iconDecoration,
+  }) {
+    final iconWidget = Container(
+      padding: isSubItem ? EdgeInsets.all(6) : style.itemIconPadding,
+      decoration: isSubItem ? null : iconDecoration,
+      child: Icon(item.icon, color: iconColor, size: iconSize),
+    );
+
+    if (item.badge == null) {
+      return iconWidget;
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        iconWidget,
+        Positioned(
+          top: style.badgeOffset?.top ?? -4,
+          right: style.badgeOffset?.right ?? -4,
+          child: BadgeWidget(badge: item.badge!, style: style),
+        ),
+      ],
     );
   }
 }
