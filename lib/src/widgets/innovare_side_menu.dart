@@ -5,6 +5,7 @@ import '../models/side_menu_mode.dart';
 import '../models/side_menu_section.dart';
 import '../styles/side_menu_style.dart';
 import '../utils/permission_filter.dart';
+import 'collapsed_menu_item.dart';
 import 'expandable_menu_item.dart';
 import 'simple_menu_item.dart';
 
@@ -19,6 +20,7 @@ class InnovareSideMenu extends StatelessWidget {
   final Widget? collapsedHeader;
   final Widget? collapsedFooter;
   final InnovareSideMenuMode mode;
+  final Duration? modeTransitionDuration;
 
   const InnovareSideMenu({
     super.key,
@@ -32,23 +34,31 @@ class InnovareSideMenu extends StatelessWidget {
     this.collapsedHeader,
     this.collapsedFooter,
     this.mode = InnovareSideMenuMode.expanded,
+    this.modeTransitionDuration,
   }) : style = style ?? const InnovareSideMenuStyle();
+
+  bool get _isCollapsed => mode == InnovareSideMenuMode.collapsed;
+
+  Duration get _transitionDuration =>
+      modeTransitionDuration ?? Duration(milliseconds: 300);
 
   @override
   Widget build(BuildContext context) {
-    // TODO: task 6 will implement collapsed mode
-    return _buildExpanded();
-  }
+    final targetWidth = _isCollapsed ? style.collapsedWidth : style.width;
 
-  Widget _buildExpanded() {
-    return Container(
-      width: style.width,
+    final activeHeader = _isCollapsed ? collapsedHeader : header;
+    final activeFooter = _isCollapsed ? collapsedFooter : footer;
+
+    return AnimatedContainer(
+      duration: _transitionDuration,
+      curve: Curves.easeInOut,
+      width: targetWidth,
       height: double.infinity,
       padding: style.padding,
       decoration: style.decoration,
       child: Column(
         children: [
-          if (header != null)
+          if (activeHeader != null)
             Container(
               padding: style.headerPadding,
               decoration: style.headerDecoration ??
@@ -57,24 +67,29 @@ class InnovareSideMenu extends StatelessWidget {
                           border: Border(bottom: style.headerDivider!),
                         )
                       : null),
-              child: header,
+              child: activeHeader,
             ),
           Expanded(
             child: ListView(
               padding: style.sectionPadding,
               physics: scrollPhysics,
               children: [
-                for (var section in sections) ...[
-                  if (shouldShowSection(section, permissionChecker)) ...[
-                    if (section.title != null)
-                      Padding(
-                        padding: style.sectionTitlePadding ?? EdgeInsets.zero,
-                        child: Text(
-                          section.title!,
-                          style: style.sectionTitleStyle,
+                for (var i = 0; i < sections.length; i++) ...[
+                  if (shouldShowSection(sections[i], permissionChecker)) ...[
+                    if (_isCollapsed) ...[
+                      if (i > 0) Divider(height: 1),
+                    ] else ...[
+                      if (sections[i].title != null)
+                        Padding(
+                          padding:
+                              style.sectionTitlePadding ?? EdgeInsets.zero,
+                          child: Text(
+                            sections[i].title!,
+                            style: style.sectionTitleStyle,
+                          ),
                         ),
-                      ),
-                    for (var item in section.items)
+                    ],
+                    for (var item in sections[i].items)
                       if (shouldShowItem(item, permissionChecker))
                         _buildMenuItem(item),
                   ],
@@ -82,7 +97,7 @@ class InnovareSideMenu extends StatelessWidget {
               ],
             ),
           ),
-          if (footer != null)
+          if (activeFooter != null)
             Container(
               padding: style.footerPadding,
               decoration: style.footerDecoration ??
@@ -91,7 +106,7 @@ class InnovareSideMenu extends StatelessWidget {
                           border: Border(top: style.footerDivider!),
                         )
                       : null),
-              child: footer,
+              child: activeFooter,
             ),
         ],
       ),
@@ -99,6 +114,14 @@ class InnovareSideMenu extends StatelessWidget {
   }
 
   Widget _buildMenuItem(InnovareSideMenuItem item) {
+    if (_isCollapsed) {
+      return CollapsedMenuItem(
+        item: item,
+        style: style,
+        permissionChecker: permissionChecker,
+      );
+    }
+
     final hasSubItems = item.subItems != null && item.subItems!.isNotEmpty;
 
     if (hasSubItems) {
