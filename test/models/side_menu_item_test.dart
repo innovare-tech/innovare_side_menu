@@ -119,28 +119,4 @@ void main() {
     });
   });
 
-  group('InnovareSideMenuSection', () {
-    test('constructs with title and items', () {
-      const section = InnovareSideMenuSection(
-        title: 'Main',
-        items: [
-          InnovareSideMenuItem(
-            id: 'home',
-            icon: Icons.home,
-            title: 'Home',
-          ),
-        ],
-      );
-
-      expect(section.title, 'Main');
-      expect(section.items, hasLength(1));
-    });
-
-    test('constructs without title', () {
-      const section = InnovareSideMenuSection(items: []);
-
-      expect(section.title, isNull);
-      expect(section.items, isEmpty);
-    });
-  });
 }

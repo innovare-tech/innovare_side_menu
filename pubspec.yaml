@@ -1,9 +1,24 @@
 name: innovare_side_menu
-description: A beautiful, highly customizable side menu widget for Flutter.
-version: 0.0.1
+description: A beautiful, highly customizable side menu widget for Flutter with expanded/collapsed modes, badges, permission filtering, and 5 built-in themes.
+version: 1.0.1
 homepage: https://github.com/innovare-tech/innovare_side_menu
 repository: https://github.com/innovare-tech/innovare_side_menu
 issue_tracker: https://github.com/innovare-tech/innovare_side_menu/issues
+
+topics:
+  - side-menu
+  - navigation
+  - sidebar
+  - widget
+  - ui
+
+platforms:
+  android:
+  ios:
+  web:
+  macos:
+  windows:
+  linux:
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

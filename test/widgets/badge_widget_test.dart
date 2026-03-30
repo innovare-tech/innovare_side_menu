@@ -69,11 +69,7 @@ void main() {
     testWidgets('item without badge does not contain Stack', (tester) async {
       await tester.pumpWidget(buildApp(badge: null));
 
-      // Find all Stacks — there should be none wrapping the icon
-      // The item should render a plain Container for the icon, not a Stack
-      final stacks = find.byType(Stack);
-      // MaterialApp/Scaffold may have internal Stacks, so we check
-      // that there's no Stack as a descendant of ListTile
+      // There should be no Stack wrapping the icon inside ListTile
       final listTile = find.byType(ListTile);
       expect(listTile, findsOneWidget);
 

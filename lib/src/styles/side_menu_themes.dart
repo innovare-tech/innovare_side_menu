@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'side_menu_style.dart';
 
+/// Built-in theme factories for [InnovareSideMenuStyle].
+///
+/// Provides 5 ready-to-use themes:
+/// - [darkDefault] — Dark gradient with blue accents.
+/// - [fromTheme] — Adapts to any Flutter [ThemeData].
+/// - [lightDefault] — Light background with blue active items.
+/// - [minimal] — Clean, borderless design with left-border indicator.
+/// - [glassmorphism] — Translucent glass effect.
 extension InnovareSideMenuThemes on InnovareSideMenuStyle {
+  /// Dark theme with gradient background, blue accent active items,
+  /// and white text. Suitable for dark-mode applications.
   static InnovareSideMenuStyle darkDefault() {
     return InnovareSideMenuStyle(
       width: 280,
@@ -122,6 +132,10 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
     );
   }
 
+  /// Creates a style that adapts to the given [theme].
+  ///
+  /// Uses the theme's color scheme for all colors, making the menu
+  /// consistent with the rest of the application.
   static InnovareSideMenuStyle fromTheme(ThemeData theme) {
     return InnovareSideMenuStyle(
       width: 280,
@@ -219,6 +233,8 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
     );
   }
 
+  /// Light theme with subtle shadows and blue active items.
+  /// Suitable for light-mode applications.
   static InnovareSideMenuStyle lightDefault() {
     return InnovareSideMenuStyle(
       width: 280,
@@ -323,6 +339,8 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
     );
   }
 
+  /// Minimal theme with no rounded corners, left-border active indicator,
+  /// and clean typography. Suitable for content-focused applications.
   static InnovareSideMenuStyle minimal() {
     return InnovareSideMenuStyle(
       width: 260,
@@ -399,6 +417,8 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
     );
   }
 
+  /// Glassmorphism theme with translucent backgrounds, frosted-glass
+  /// borders, and soft shadows. Best used over gradient or image backgrounds.
   static InnovareSideMenuStyle glassmorphism() {
     return InnovareSideMenuStyle(
       width: 280,

@@ -9,19 +9,74 @@ import 'collapsed_menu_item.dart';
 import 'expandable_menu_item.dart';
 import 'simple_menu_item.dart';
 
+/// A declarative, customizable side menu widget for Flutter.
+///
+/// Displays a vertical navigation menu with sections, hierarchical items,
+/// badges, and permission-based filtering. Supports both [InnovareSideMenuMode.expanded]
+/// and [InnovareSideMenuMode.collapsed] modes with animated transitions.
+///
+/// {@tool snippet}
+/// ```dart
+/// InnovareSideMenu(
+///   style: InnovareSideMenuThemes.darkDefault(),
+///   sections: [
+///     InnovareSideMenuSection(
+///       title: 'MAIN',
+///       items: [
+///         InnovareSideMenuItem(
+///           id: 'home',
+///           icon: Icons.home,
+///           title: 'Home',
+///           isActive: true,
+///         ),
+///       ],
+///     ),
+///   ],
+/// )
+/// ```
+/// {@end-tool}
 class InnovareSideMenu extends StatelessWidget {
+  /// The list of sections to display in the menu.
   final List<InnovareSideMenuSection> sections;
+
+  /// Visual styling configuration. Defaults to [InnovareSideMenuStyle] with
+  /// default values if not provided.
   final InnovareSideMenuStyle style;
+
+  /// The current route for matching active items by route.
   final String? currentRoute;
+
+  /// Custom scroll physics for the menu's [ListView].
   final ScrollPhysics? scrollPhysics;
+
+  /// Callback to determine if an item with a given permission should be shown.
+  ///
+  /// If `null`, all items are visible regardless of their [InnovareSideMenuItem.permission].
   final bool Function(String permission)? permissionChecker;
+
+  /// Widget displayed at the top of the menu in expanded mode.
   final Widget? header;
+
+  /// Widget displayed at the bottom of the menu in expanded mode.
   final Widget? footer;
+
+  /// Widget displayed at the top of the menu in collapsed mode.
   final Widget? collapsedHeader;
+
+  /// Widget displayed at the bottom of the menu in collapsed mode.
   final Widget? collapsedFooter;
+
+  /// The current display mode. Defaults to [InnovareSideMenuMode.expanded].
   final InnovareSideMenuMode mode;
+
+  /// Duration of the animated transition between expanded and collapsed modes.
+  ///
+  /// Defaults to `Duration(milliseconds: 300)`.
   final Duration? modeTransitionDuration;
 
+  /// Creates an [InnovareSideMenu].
+  ///
+  /// The [sections] parameter is required.
   const InnovareSideMenu({
     super.key,
     required this.sections,
@@ -46,9 +101,6 @@ class InnovareSideMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final targetWidth = _isCollapsed ? style.collapsedWidth : style.width;
 
-    final activeHeader = _isCollapsed ? collapsedHeader : header;
-    final activeFooter = _isCollapsed ? collapsedFooter : footer;
-
     return AnimatedContainer(
       duration: _transitionDuration,
       curve: Curves.easeInOut,
@@ -56,65 +108,81 @@ class InnovareSideMenu extends StatelessWidget {
       height: double.infinity,
       padding: style.padding,
       decoration: style.decoration,
-      child: Column(
-        children: [
-          if (activeHeader != null)
-            Container(
-              padding: style.headerPadding,
-              decoration: style.headerDecoration ??
-                  (style.headerDivider != null
-                      ? BoxDecoration(
-                          border: Border(bottom: style.headerDivider!),
-                        )
-                      : null),
-              child: activeHeader,
-            ),
-          Expanded(
-            child: ListView(
-              padding: style.sectionPadding,
-              physics: scrollPhysics,
-              children: [
-                for (var i = 0; i < sections.length; i++) ...[
-                  if (shouldShowSection(sections[i], permissionChecker)) ...[
-                    if (_isCollapsed) ...[
-                      if (i > 0) Divider(height: 1),
-                    ] else ...[
-                      if (sections[i].title != null)
-                        Padding(
-                          padding:
-                              style.sectionTitlePadding ?? EdgeInsets.zero,
-                          child: Text(
-                            sections[i].title!,
-                            style: style.sectionTitleStyle,
-                          ),
-                        ),
+      clipBehavior: style.decoration != null ? Clip.hardEdge : Clip.none,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Switch content based on actual animated width, not the boolean flag,
+          // to prevent overflow during the width transition animation.
+          final widthThreshold = (style.width + style.collapsedWidth) / 2;
+          final showCollapsed = constraints.maxWidth < widthThreshold;
+
+          final activeHeader = showCollapsed ? collapsedHeader : header;
+          final activeFooter = showCollapsed ? collapsedFooter : footer;
+
+          return Column(
+            children: [
+              if (activeHeader != null)
+                Container(
+                  padding: style.headerPadding,
+                  decoration: style.headerDecoration ??
+                      (style.headerDivider != null
+                          ? BoxDecoration(
+                              border: Border(bottom: style.headerDivider!),
+                            )
+                          : null),
+                  child: activeHeader,
+                ),
+              Expanded(
+                child: ListView(
+                  padding: style.sectionPadding,
+                  physics: scrollPhysics,
+                  children: [
+                    for (var i = 0; i < sections.length; i++) ...[
+                      if (shouldShowSection(
+                          sections[i], permissionChecker)) ...[
+                        if (showCollapsed) ...[
+                          if (i > 0) Divider(height: 1),
+                        ] else ...[
+                          if (sections[i].title != null)
+                            Padding(
+                              padding:
+                                  style.sectionTitlePadding ?? EdgeInsets.zero,
+                              child: Text(
+                                sections[i].title!,
+                                style: style.sectionTitleStyle,
+                                overflow: TextOverflow.clip,
+                                maxLines: 1,
+                              ),
+                            ),
+                        ],
+                        for (var item in sections[i].items)
+                          if (shouldShowItem(item, permissionChecker))
+                            _buildMenuItem(item, showCollapsed),
+                      ],
                     ],
-                    for (var item in sections[i].items)
-                      if (shouldShowItem(item, permissionChecker))
-                        _buildMenuItem(item),
                   ],
-                ],
-              ],
-            ),
-          ),
-          if (activeFooter != null)
-            Container(
-              padding: style.footerPadding,
-              decoration: style.footerDecoration ??
-                  (style.footerDivider != null
-                      ? BoxDecoration(
-                          border: Border(top: style.footerDivider!),
-                        )
-                      : null),
-              child: activeFooter,
-            ),
-        ],
+                ),
+              ),
+              if (activeFooter != null)
+                Container(
+                  padding: style.footerPadding,
+                  decoration: style.footerDecoration ??
+                      (style.footerDivider != null
+                          ? BoxDecoration(
+                              border: Border(top: style.footerDivider!),
+                            )
+                          : null),
+                  child: activeFooter,
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildMenuItem(InnovareSideMenuItem item) {
-    if (_isCollapsed) {
+  Widget _buildMenuItem(InnovareSideMenuItem item, bool showCollapsed) {
+    if (showCollapsed) {
       return CollapsedMenuItem(
         item: item,
         style: style,
@@ -137,7 +205,7 @@ class InnovareSideMenu extends StatelessWidget {
       item: item,
       style: style,
       isSubItem: false,
-      isCollapsed: _isCollapsed,
+      isCollapsed: showCollapsed,
       transitionDuration: _transitionDuration,
     );
   }

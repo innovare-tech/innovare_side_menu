@@ -198,5 +198,188 @@ void main() {
       expect(find.text('Child 1'), findsOneWidget);
       expect(find.text('Child 2'), findsOneWidget);
     });
+
+    testWidgets('renders header widget when provided', (tester) async {
+      await tester.pumpWidget(buildApp(
+        header: const Text('My Header'),
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'item',
+                title: 'Item',
+                icon: Icons.home,
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      expect(find.text('My Header'), findsOneWidget);
+    });
+
+    testWidgets('renders footer widget when provided', (tester) async {
+      await tester.pumpWidget(buildApp(
+        footer: const Text('My Footer'),
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'item',
+                title: 'Item',
+                icon: Icons.home,
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      expect(find.text('My Footer'), findsOneWidget);
+    });
+
+    testWidgets('onTap callback is triggered when item is tapped',
+        (tester) async {
+      bool tapped = false;
+
+      await tester.pumpWidget(buildApp(
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'clickable',
+                title: 'Clickable',
+                icon: Icons.touch_app,
+                onTap: () => tapped = true,
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      await tester.tap(find.text('Clickable'));
+      await tester.pumpAndSettle();
+
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('section without title does not render title Text',
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'a',
+                title: 'Item A',
+                icon: Icons.home,
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      // Only the item text should be found, no section title
+      expect(find.text('Item A'), findsOneWidget);
+    });
+
+    testWidgets('badge custom widget is rendered', (tester) async {
+      await tester.pumpWidget(buildApp(
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'badged',
+                title: 'Badged Item',
+                icon: Icons.star,
+                badge: InnovareSideMenuBadge.custom(
+                  Container(
+                    key: Key('custom-badge'),
+                    width: 12,
+                    height: 12,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      expect(find.byKey(Key('custom-badge')), findsOneWidget);
+    });
+
+    testWidgets('inactive item does not use activeItemDecoration',
+        (tester) async {
+      final activeDecoration = BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(8),
+      );
+
+      await tester.pumpWidget(buildApp(
+        style: InnovareSideMenuStyle(
+          activeItemDecoration: activeDecoration,
+        ),
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'inactive',
+                title: 'Inactive Item',
+                icon: Icons.home,
+                isActive: false,
+              ),
+            ],
+          ),
+        ],
+      ));
+
+      final containers = tester.widgetList<Container>(find.byType(Container));
+      final hasActiveDecoration = containers.any(
+        (c) => c.decoration == activeDecoration,
+      );
+      expect(hasActiveDecoration, isFalse);
+    });
+  });
+
+  group('InnovareSideMenu - Collapsed Mode Headers', () {
+    testWidgets('collapsed mode uses collapsedHeader instead of header',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Row(
+              children: [
+                InnovareSideMenu(
+                  mode: InnovareSideMenuMode.collapsed,
+                  style: InnovareSideMenuStyle(collapsedWidth: 72),
+                  header: const Text('Expanded Header'),
+                  collapsedHeader: const Text('Collapsed Header'),
+                  footer: const Text('Expanded Footer'),
+                  collapsedFooter: const Text('Collapsed Footer'),
+                  sections: [
+                    InnovareSideMenuSection(
+                      items: [
+                        InnovareSideMenuItem(
+                          id: 'a',
+                          title: 'A',
+                          icon: Icons.home,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Expanded(child: Container()),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Collapsed Header'), findsOneWidget);
+      expect(find.text('Expanded Header'), findsNothing);
+      expect(find.text('Collapsed Footer'), findsOneWidget);
+      expect(find.text('Expanded Footer'), findsNothing);
+    });
   });
 }
