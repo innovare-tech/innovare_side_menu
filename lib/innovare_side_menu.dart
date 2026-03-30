@@ -11,7 +11,4 @@ export 'src/models/side_menu_badge.dart';
 export 'src/models/side_menu_mode.dart';
 export 'src/styles/side_menu_style.dart';
 export 'src/styles/side_menu_themes.dart';
-export 'src/utils/permission_filter.dart';
 export 'src/widgets/innovare_side_menu.dart';
-export 'src/widgets/simple_menu_item.dart';
-export 'src/widgets/expandable_menu_item.dart';
