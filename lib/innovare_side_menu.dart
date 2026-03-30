@@ -4,3 +4,8 @@
 /// with sections, hierarchical items, expanded/collapsed modes, badges,
 /// permission-based filtering, and 5 built-in themes.
 library;
+
+export 'src/models/side_menu_item.dart';
+export 'src/models/side_menu_section.dart';
+export 'src/models/side_menu_badge.dart';
+export 'src/models/side_menu_mode.dart';

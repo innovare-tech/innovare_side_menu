@@ -1,0 +1,4 @@
+enum InnovareSideMenuMode {
+  expanded,
+  collapsed,
+}
