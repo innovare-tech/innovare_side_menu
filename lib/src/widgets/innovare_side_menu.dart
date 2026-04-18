@@ -182,19 +182,22 @@ class InnovareSideMenu extends StatelessWidget {
   }
 
   Widget _buildMenuItem(InnovareSideMenuItem item, bool showCollapsed) {
+    // Auto-match: se currentRoute corresponde ao item.route, marcar como active
+    final resolvedItem = _resolveActiveState(item);
+
     if (showCollapsed) {
       return CollapsedMenuItem(
-        item: item,
+        item: resolvedItem,
         style: style,
         permissionChecker: permissionChecker,
       );
     }
 
-    final hasSubItems = item.subItems != null && item.subItems!.isNotEmpty;
+    final hasSubItems = resolvedItem.subItems != null && resolvedItem.subItems!.isNotEmpty;
 
     if (hasSubItems) {
       return ExpandableMenuItem(
-        item: item,
+        item: resolvedItem,
         style: style,
         currentRoute: currentRoute,
         permissionChecker: permissionChecker,
@@ -202,11 +205,28 @@ class InnovareSideMenu extends StatelessWidget {
     }
 
     return SimpleMenuItem(
-      item: item,
+      item: resolvedItem,
       style: style,
       isSubItem: false,
       isCollapsed: showCollapsed,
       transitionDuration: _transitionDuration,
     );
+  }
+
+  InnovareSideMenuItem _resolveActiveState(InnovareSideMenuItem item) {
+    if (currentRoute == null || currentRoute!.isEmpty) return item;
+    if (item.route == null) return item;
+
+    final isMatch = currentRoute == item.route ||
+        currentRoute!.startsWith('${item.route}/');
+
+    if (isMatch && !item.isActive) {
+      return item.copyWith(isActive: true);
+    }
+    if (!isMatch && item.isActive) {
+      return item.copyWith(isActive: false);
+    }
+
+    return item;
   }
 }
