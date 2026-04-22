@@ -97,9 +97,55 @@ class InnovareSideMenu extends StatelessWidget {
   Duration get _transitionDuration =>
       modeTransitionDuration ?? Duration(milliseconds: 300);
 
+  /// Computa a rota mais específica (mais longa) dentre todos os itens
+  /// declarados nas `sections` que dá match com `currentRoute` (match
+  /// exato OU prefixo com separador `/`). Usada por `_resolveActiveState`
+  /// para resolver conflitos onde múltiplos itens casariam por prefix.
+  ///
+  /// Exemplo: dado `currentRoute = '/home/settings/tags'`, e itens
+  /// `settings` (`/home/settings`) + `tags` (`/home/settings/tags`), ambos
+  /// "casam" via prefix. Sem esta resolução ambos ficariam ativos. Com
+  /// ela, apenas `/home/settings/tags` (maior tamanho) fica ativo —
+  /// comportamento esperado de breadcrumb invertido.
+  ///
+  /// Retorna `null` se nenhum item dá match, caso em que o usuário está
+  /// numa rota não declarada no menu (ex.: detalhes de entidade) —
+  /// ninguém fica ativo.
+  String? _findLongestMatchingRoute() {
+    if (currentRoute == null || currentRoute!.isEmpty) return null;
+
+    String? best;
+    void visit(InnovareSideMenuItem item) {
+      final route = item.route;
+      if (route != null && route.isNotEmpty) {
+        final isMatch =
+            currentRoute == route || currentRoute!.startsWith('$route/');
+        if (isMatch && (best == null || route.length > best!.length)) {
+          best = route;
+        }
+      }
+      final subs = item.subItems;
+      if (subs != null) {
+        for (final sub in subs) {
+          visit(sub);
+        }
+      }
+    }
+
+    for (final section in sections) {
+      for (final item in section.items) {
+        visit(item);
+      }
+    }
+    return best;
+  }
+
   @override
   Widget build(BuildContext context) {
     final targetWidth = _isCollapsed ? style.collapsedWidth : style.width;
+    // Computa uma única vez por build. Evita O(N) por item nos re-renders
+    // de `_resolveActiveState` — custo amortizado no hot path.
+    final longestMatch = _findLongestMatchingRoute();
 
     return AnimatedContainer(
       duration: _transitionDuration,
@@ -157,7 +203,7 @@ class InnovareSideMenu extends StatelessWidget {
                         ],
                         for (var item in sections[i].items)
                           if (shouldShowItem(item, permissionChecker))
-                            _buildMenuItem(item, showCollapsed),
+                            _buildMenuItem(item, showCollapsed, longestMatch),
                       ],
                     ],
                   ],
@@ -181,9 +227,16 @@ class InnovareSideMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(InnovareSideMenuItem item, bool showCollapsed) {
-    // Auto-match: se currentRoute corresponde ao item.route, marcar como active
-    final resolvedItem = _resolveActiveState(item);
+  Widget _buildMenuItem(
+    InnovareSideMenuItem item,
+    bool showCollapsed,
+    String? longestMatch,
+  ) {
+    // Auto-match: se currentRoute corresponde ao item.route E esse item
+    // tem a rota mais específica dentre todos os matches, marca como
+    // active. Isso evita que múltiplos itens (pai + filho) fiquem ativos
+    // simultaneamente quando um é prefixo do outro.
+    final resolvedItem = _resolveActiveState(item, longestMatch);
 
     if (showCollapsed) {
       return CollapsedMenuItem(
@@ -213,12 +266,18 @@ class InnovareSideMenu extends StatelessWidget {
     );
   }
 
-  InnovareSideMenuItem _resolveActiveState(InnovareSideMenuItem item) {
+  InnovareSideMenuItem _resolveActiveState(
+    InnovareSideMenuItem item,
+    String? longestMatch,
+  ) {
     if (currentRoute == null || currentRoute!.isEmpty) return item;
     if (item.route == null) return item;
 
-    final isMatch = currentRoute == item.route ||
-        currentRoute!.startsWith('${item.route}/');
+    // Só fica ativo se este item tem EXATAMENTE a rota mais específica
+    // dentre todos os matches. Itens que casariam por prefix (pais de
+    // outro item ativo) perdem o active — evita double-highlight quando
+    // dois itens do menu estão em rotas prefixadas.
+    final isMatch = longestMatch != null && item.route == longestMatch;
 
     if (isMatch && !item.isActive) {
       return item.copyWith(isActive: true);
