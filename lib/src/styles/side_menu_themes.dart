@@ -360,6 +360,8 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
       badgeColor: c.danger.content,
       badgeTextColor: badgeOn,
       badgeTextStyle: type.numeric(type.labelSmall).copyWith(color: badgeOn),
+      stateAnimationDuration: motion.micro,
+      appearAnimationDuration: motion.enter,
     );
   }
 

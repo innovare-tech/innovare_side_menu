@@ -179,6 +179,21 @@ class InnovareSideMenuStyle {
   /// Positional offset for the badge relative to the icon.
   final EdgeInsets? badgeOffset;
 
+  /// Duration for animating active/hover state changes on items (decoration,
+  /// text and icon color). Set to [Duration.zero] to disable. Defaults to 200ms.
+  final Duration stateAnimationDuration;
+
+  /// Whether items animate (fade + slide) into view on first appearance.
+  /// Defaults to `true`.
+  final bool animateOnAppear;
+
+  /// Duration of each item's appearance animation. Defaults to 350ms.
+  final Duration appearAnimationDuration;
+
+  /// Stagger delay added per item index for the appearance cascade.
+  /// Defaults to 45ms.
+  final Duration appearStaggerInterval;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -241,6 +256,10 @@ class InnovareSideMenuStyle {
     this.badgeTextColor,
     this.badgeTextStyle,
     this.badgeOffset,
+    this.stateAnimationDuration = const Duration(milliseconds: 200),
+    this.animateOnAppear = true,
+    this.appearAnimationDuration = const Duration(milliseconds: 350),
+    this.appearStaggerInterval = const Duration(milliseconds: 45),
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -302,6 +321,10 @@ class InnovareSideMenuStyle {
     Color? badgeTextColor,
     TextStyle? badgeTextStyle,
     EdgeInsets? badgeOffset,
+    Duration? stateAnimationDuration,
+    bool? animateOnAppear,
+    Duration? appearAnimationDuration,
+    Duration? appearStaggerInterval,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -383,6 +406,13 @@ class InnovareSideMenuStyle {
       badgeTextColor: badgeTextColor ?? this.badgeTextColor,
       badgeTextStyle: badgeTextStyle ?? this.badgeTextStyle,
       badgeOffset: badgeOffset ?? this.badgeOffset,
+      stateAnimationDuration:
+          stateAnimationDuration ?? this.stateAnimationDuration,
+      animateOnAppear: animateOnAppear ?? this.animateOnAppear,
+      appearAnimationDuration:
+          appearAnimationDuration ?? this.appearAnimationDuration,
+      appearStaggerInterval:
+          appearStaggerInterval ?? this.appearStaggerInterval,
     );
   }
 }

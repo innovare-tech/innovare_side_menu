@@ -182,31 +182,7 @@ class InnovareSideMenu extends StatelessWidget {
                 child: ListView(
                   padding: style.sectionPadding,
                   physics: scrollPhysics,
-                  children: [
-                    for (var i = 0; i < sections.length; i++) ...[
-                      if (shouldShowSection(
-                          sections[i], permissionChecker)) ...[
-                        if (showCollapsed) ...[
-                          if (i > 0) Divider(height: 1),
-                        ] else ...[
-                          if (sections[i].title != null)
-                            Padding(
-                              padding:
-                                  style.sectionTitlePadding ?? EdgeInsets.zero,
-                              child: Text(
-                                sections[i].title!,
-                                style: style.sectionTitleStyle,
-                                overflow: TextOverflow.clip,
-                                maxLines: 1,
-                              ),
-                            ),
-                        ],
-                        for (var item in sections[i].items)
-                          if (shouldShowItem(item, permissionChecker))
-                            _buildMenuItem(item, showCollapsed, longestMatch),
-                      ],
-                    ],
-                  ],
+                  children: _buildListChildren(showCollapsed, longestMatch),
                 ),
               ),
               if (activeFooter != null)
@@ -225,6 +201,45 @@ class InnovareSideMenu extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// Flattens the visible sections/items into a single child list, wrapping
+  /// each item in an [_Appear] so they cascade into view (staggered by index).
+  List<Widget> _buildListChildren(bool showCollapsed, String? longestMatch) {
+    final children = <Widget>[];
+    var appearIndex = 0;
+    for (var i = 0; i < sections.length; i++) {
+      final section = sections[i];
+      if (!shouldShowSection(section, permissionChecker)) continue;
+      if (showCollapsed) {
+        if (i > 0) children.add(const Divider(height: 1));
+      } else if (section.title != null) {
+        children.add(
+          Padding(
+            padding: style.sectionTitlePadding ?? EdgeInsets.zero,
+            child: Text(
+              section.title!,
+              style: style.sectionTitleStyle,
+              overflow: TextOverflow.clip,
+              maxLines: 1,
+            ),
+          ),
+        );
+      }
+      for (final item in section.items) {
+        if (!shouldShowItem(item, permissionChecker)) continue;
+        children.add(
+          _Appear(
+            index: appearIndex++,
+            enabled: style.animateOnAppear,
+            duration: style.appearAnimationDuration,
+            interval: style.appearStaggerInterval,
+            child: _buildMenuItem(item, showCollapsed, longestMatch),
+          ),
+        );
+      }
+    }
+    return children;
   }
 
   Widget _buildMenuItem(
@@ -287,5 +302,86 @@ class InnovareSideMenu extends StatelessWidget {
     }
 
     return item;
+  }
+}
+
+/// A one-time fade + slide-in used to stagger menu items into view.
+///
+/// Animates only on first mount; subsequent rebuilds (e.g. selection changes)
+/// keep the item fully visible. Honors `MediaQuery.disableAnimations`.
+class _Appear extends StatefulWidget {
+  final int index;
+  final bool enabled;
+  final Duration duration;
+  final Duration interval;
+  final Widget child;
+
+  const _Appear({
+    required this.index,
+    required this.enabled,
+    required this.duration,
+    required this.interval,
+    required this.child,
+  });
+
+  @override
+  State<_Appear> createState() => _AppearState();
+}
+
+class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
+  static const _maxStaggerDelay = Duration(milliseconds: 360);
+
+  late final AnimationController _controller = AnimationController(vsync: this);
+  Animation<double> _animation = const AlwaysStoppedAnimation<double>(1);
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (!widget.enabled || reduceMotion || widget.duration == Duration.zero) {
+      return;
+    }
+    var delay = widget.interval * widget.index;
+    if (delay > _maxStaggerDelay) delay = _maxStaggerDelay;
+    // Fold the stagger delay into the curve (an Interval that stays flat for
+    // the delay, then eases in) so we never schedule a raw timer — keeps the
+    // widget test-friendly (no pending timers) while still cascading.
+    final total = delay + widget.duration;
+    _controller.duration = total;
+    final startFraction =
+        total.inMicroseconds == 0 ? 0.0 : delay.inMicroseconds / total.inMicroseconds;
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Interval(startFraction, 1, curve: Curves.easeOutCubic),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      child: widget.child,
+      builder: (context, child) {
+        final t = _animation.value;
+        return Opacity(
+          opacity: t.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * 8),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 }

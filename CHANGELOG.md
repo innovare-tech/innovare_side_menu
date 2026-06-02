@@ -6,6 +6,12 @@
   so the menu re-skins per client from a single source of truth.
 - Add `innovare_design` as a dependency (used by the new factory).
 - Raise minimum SDK to Dart 3.6 / Flutter 3.27 (required by `innovare_design`).
+- Motion: items now animate their active/hover state (decoration, label and
+  icon color crossfade) and cascade into view on first appearance. Honors
+  `MediaQuery.disableAnimations` (reduce motion). Tunable via new
+  `InnovareSideMenuStyle` fields `stateAnimationDuration`, `animateOnAppear`,
+  `appearAnimationDuration` and `appearStaggerInterval`. `fromInnovare` maps
+  these from the client's motion personality.
 
 ## 1.0.1
 

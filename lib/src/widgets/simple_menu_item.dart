@@ -24,6 +24,10 @@ class SimpleMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = item.isActive;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final stateDuration =
+        reduceMotion ? Duration.zero : style.stateAnimationDuration;
 
     final padding = isSubItem ? style.subItemPadding : style.itemPadding;
     final margin = isSubItem ? style.subItemMargin : style.itemMargin;
@@ -64,26 +68,34 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemFontWeight
         : style.inactiveItemFontWeight;
 
-    Widget tile = Container(
+    Widget tile = AnimatedContainer(
+      duration: stateDuration,
+      curve: Curves.easeOutCubic,
       margin: margin,
       decoration: decoration,
       child: ListTile(
-        leading: item.customLeading ?? _buildLeading(
-          iconColor: iconColor,
-          iconSize: iconSize,
-          iconDecoration: iconDecoration,
-        ),
+        leading: item.customLeading ??
+            _buildLeading(
+              iconColor: iconColor,
+              iconSize: iconSize,
+              iconDecoration: iconDecoration,
+              duration: stateDuration,
+            ),
         title: AnimatedOpacity(
           opacity: isCollapsed ? 0.0 : 1.0,
           duration: transitionDuration,
-          child: Text(
-            item.title,
+          child: AnimatedDefaultTextStyle(
+            duration: stateDuration,
+            curve: Curves.easeOutCubic,
             style: TextStyle(
               color: textColor,
               fontSize: fontSize,
               fontWeight: fontWeight,
             ),
-            overflow: TextOverflow.ellipsis,
+            child: Text(
+              item.title,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
         trailing: isCollapsed ? null : item.trailing,
@@ -121,11 +133,25 @@ class SimpleMenuItem extends StatelessWidget {
     required Color? iconColor,
     required double? iconSize,
     required BoxDecoration? iconDecoration,
+    required Duration duration,
   }) {
-    final iconWidget = Container(
-      padding: isSubItem ? EdgeInsets.all(6) : style.itemIconPadding,
+    // TweenAnimationBuilder requires a non-null tween end, so only animate the
+    // color when one is provided; otherwise fall back to the ambient icon color.
+    final Widget iconChild = iconColor == null
+        ? Icon(item.icon, size: iconSize)
+        : TweenAnimationBuilder<Color?>(
+            duration: duration,
+            tween: ColorTween(end: iconColor),
+            builder: (context, color, _) =>
+                Icon(item.icon, color: color, size: iconSize),
+          );
+
+    final iconWidget = AnimatedContainer(
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      padding: isSubItem ? const EdgeInsets.all(6) : style.itemIconPadding,
       decoration: isSubItem ? null : iconDecoration,
-      child: Icon(item.icon, color: iconColor, size: iconSize),
+      child: iconChild,
     );
 
     if (item.badge == null) {

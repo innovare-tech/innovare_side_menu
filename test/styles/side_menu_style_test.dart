@@ -11,6 +11,8 @@ void main() {
       expect(style.width, 280);
       expect(style.collapsedWidth, 72);
       expect(style.badgeSize, 8);
+      expect(style.animateOnAppear, isTrue);
+      expect(style.stateAnimationDuration, const Duration(milliseconds: 200));
     });
 
     test('copyWith changes width and preserves all other fields', () {
@@ -109,6 +111,8 @@ void main() {
       expect(style.activeItemIconColor, theme.colors.brand);
       expect(style.badgeColor, theme.colors.danger.content);
       expect(style.expandAnimationDuration, theme.motion.micro);
+      expect(style.stateAnimationDuration, theme.motion.micro);
+      expect(style.appearAnimationDuration, theme.motion.enter);
     });
 
     test('honors the corner shape (pill preset uses chip radius on items)', () {

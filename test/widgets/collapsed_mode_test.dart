@@ -108,8 +108,10 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Verify AnimatedContainer exists
-      expect(find.byType(AnimatedContainer), findsOneWidget);
+      // Verify an AnimatedContainer drives the width. Menu items now animate
+      // their state too, so several may exist; the outer one (first) is the
+      // width container asserted below.
+      expect(find.byType(AnimatedContainer), findsWidgets);
 
       final renderBox = tester.renderObject<RenderBox>(
         find.byType(AnimatedContainer).first,
