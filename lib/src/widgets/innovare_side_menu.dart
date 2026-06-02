@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../controllers/side_menu_controller.dart';
 import '../models/side_menu_item.dart';
 import '../models/side_menu_mode.dart';
 import '../models/side_menu_section.dart';
@@ -90,6 +91,11 @@ class InnovareSideMenu extends StatefulWidget {
   /// Defaults to a simple centered placeholder (nothing when collapsed).
   final Widget? emptyState;
 
+  /// Optional imperative controller to collapse/expand the rail and open/close
+  /// collapsible sections from code. When provided, it overrides [mode] for the
+  /// collapse state and owns the section open/closed state.
+  final InnovareSideMenuController? controller;
+
   /// Creates an [InnovareSideMenu].
   ///
   /// The [sections] parameter is required.
@@ -110,6 +116,7 @@ class InnovareSideMenu extends StatefulWidget {
     this.isLoading = false,
     this.loadingItemCount = 6,
     this.emptyState,
+    this.controller,
   }) : style = style ?? const InnovareSideMenuStyle();
 
   @override
@@ -143,23 +150,50 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
         _collapsedSections.add(section.title!);
       }
     }
+    widget.controller?.addListener(_onControllerChanged);
   }
 
-  bool get _isCollapsed => widget.mode == InnovareSideMenuMode.collapsed;
+  @override
+  void didUpdateWidget(covariant InnovareSideMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(_onControllerChanged);
+      widget.controller?.addListener(_onControllerChanged);
+    }
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _isCollapsed =>
+      widget.controller?.isCollapsed ??
+      (widget.mode == InnovareSideMenuMode.collapsed);
 
   Duration get _transitionDuration =>
       widget.modeTransitionDuration ?? const Duration(milliseconds: 300);
 
   @override
   void dispose() {
+    widget.controller?.removeListener(_onControllerChanged);
     _scrollController.dispose();
     super.dispose();
   }
 
   GlobalKey _keyFor(String id) => _itemKeys.putIfAbsent(id, () => GlobalKey());
 
+  /// Current collapsed state of the [title] section, controller-aware.
+  bool _sectionCollapsed(String title) =>
+      widget.controller?.isSectionCollapsed(title) ??
+      _collapsedSections.contains(title);
+
   void _toggleSection(String title) {
     if (widget.style.enableHaptics) HapticFeedback.selectionClick();
+    final controller = widget.controller;
+    if (controller != null) {
+      controller.toggleSection(title);
+      return;
+    }
     setState(() {
       if (!_collapsedSections.remove(title)) {
         _collapsedSections.add(title);
@@ -475,8 +509,7 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
       }
 
       final collapsible = section.collapsible && section.title != null;
-      final expanded =
-          !collapsible || !_collapsedSections.contains(section.title);
+      final expanded = !collapsible || !_sectionCollapsed(section.title!);
 
       if (section.title != null) {
         children.add(

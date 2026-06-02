@@ -41,6 +41,11 @@
   (`loadingItemCount`, default 6; reduce-motion aware) and announces "Loading";
   when there are no visible items the menu shows an empty placeholder, overridable
   via `emptyState`.
+- Imperative control: pass an `InnovareSideMenuController` to collapse/expand the
+  rail (`collapse()` / `expand()` / `toggleCollapsed()`) and open/close
+  collapsible sections (`collapseSection` / `expandSection` / `toggleSection`)
+  from code — ideal for a hamburger button. When provided it overrides `mode` and
+  owns the section open/closed state; seed the initial state via its constructor.
 
 ## 1.0.1
 
