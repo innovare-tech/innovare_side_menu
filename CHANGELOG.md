@@ -25,6 +25,9 @@
 - Collapsible sections: set `collapsible: true` (and optional `initiallyExpanded`)
   on an `InnovareSideMenuSection` to render a tappable header with a rotating
   chevron that rolls its items in/out (expanded mode). Reduce-motion aware.
+- Hover-to-expand: set `expandOnHover: true` so a collapsed rail expands in place
+  while the pointer hovers it (desktop/web), revealing labels via the existing
+  width transition, then collapses on exit.
 
 ## 1.0.1
 

@@ -209,6 +209,10 @@ class InnovareSideMenuStyle {
   /// the active item changes. Defaults to `true`.
   final bool autoScrollToActive;
 
+  /// When collapsed, expand the rail in place while the pointer hovers over it
+  /// (desktop/web). Defaults to `false`.
+  final bool expandOnHover;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -279,6 +283,7 @@ class InnovareSideMenuStyle {
     this.pressedScale = 0.97,
     this.hoverScale = 1.0,
     this.autoScrollToActive = true,
+    this.expandOnHover = false,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -348,6 +353,7 @@ class InnovareSideMenuStyle {
     double? pressedScale,
     double? hoverScale,
     bool? autoScrollToActive,
+    bool? expandOnHover,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -440,6 +446,7 @@ class InnovareSideMenuStyle {
       pressedScale: pressedScale ?? this.pressedScale,
       hoverScale: hoverScale ?? this.hoverScale,
       autoScrollToActive: autoScrollToActive ?? this.autoScrollToActive,
+      expandOnHover: expandOnHover ?? this.expandOnHover,
     );
   }
 }

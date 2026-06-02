@@ -111,6 +111,9 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   /// Titles of sections currently collapsed (collapsible sections only).
   final Set<String> _collapsedSections = {};
 
+  /// Whether the pointer is hovering the rail (drives expand-on-hover).
+  bool _hovering = false;
+
   @override
   void initState() {
     super.initState();
@@ -254,7 +257,10 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   @override
   Widget build(BuildContext context) {
     final style = widget.style;
-    final targetWidth = _isCollapsed ? style.collapsedWidth : style.width;
+    final hoverExpand = _isCollapsed && style.expandOnHover;
+    final effectiveCollapsed = _isCollapsed && !(hoverExpand && _hovering);
+    final targetWidth =
+        effectiveCollapsed ? style.collapsedWidth : style.width;
     // Computa uma única vez por build. Evita O(N) por item nos re-renders
     // de `_resolveActiveState` — custo amortizado no hot path.
     final longestMatch = _findLongestMatchingRoute();
@@ -263,7 +269,7 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
       _scheduleScrollToActive(context, _activeTopLevelId(longestMatch));
     }
 
-    return AnimatedContainer(
+    final Widget menu = AnimatedContainer(
       duration: _transitionDuration,
       curve: Curves.easeInOut,
       width: targetWidth,
@@ -326,6 +332,19 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
         },
       ),
     );
+
+    if (hoverExpand) {
+      return MouseRegion(
+        onEnter: (_) {
+          if (!_hovering) setState(() => _hovering = true);
+        },
+        onExit: (_) {
+          if (_hovering) setState(() => _hovering = false);
+        },
+        child: menu,
+      );
+    }
+    return menu;
   }
 
   /// Flattens the visible sections/items into a single child list, wrapping
