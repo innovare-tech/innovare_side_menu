@@ -217,6 +217,10 @@ class InnovareSideMenuStyle {
   /// as a collapsed rail regardless of `mode`. `null` disables it (default).
   final double? autoCollapseBelowWidth;
 
+  /// Opacity applied to disabled items (when `InnovareSideMenuItem.enabled` is
+  /// `false`). Defaults to `0.38` (Material's disabled opacity).
+  final double disabledOpacity;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -289,6 +293,7 @@ class InnovareSideMenuStyle {
     this.autoScrollToActive = true,
     this.expandOnHover = false,
     this.autoCollapseBelowWidth,
+    this.disabledOpacity = 0.38,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -360,6 +365,7 @@ class InnovareSideMenuStyle {
     bool? autoScrollToActive,
     bool? expandOnHover,
     double? autoCollapseBelowWidth,
+    double? disabledOpacity,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -455,6 +461,7 @@ class InnovareSideMenuStyle {
       expandOnHover: expandOnHover ?? this.expandOnHover,
       autoCollapseBelowWidth:
           autoCollapseBelowWidth ?? this.autoCollapseBelowWidth,
+      disabledOpacity: disabledOpacity ?? this.disabledOpacity,
     );
   }
 }

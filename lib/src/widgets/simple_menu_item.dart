@@ -68,7 +68,8 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemFontWeight
         : style.inactiveItemFontWeight;
 
-    final baseOnTap = item.onTap;
+    final enabled = item.enabled;
+    final baseOnTap = enabled ? item.onTap : null;
     final onTap = baseOnTap == null
         ? null
         : () {
@@ -128,15 +129,20 @@ class SimpleMenuItem extends StatelessWidget {
     return Semantics(
       label: item.accessibleLabel,
       button: true,
+      enabled: enabled,
       selected: item.isActive,
-      child: _FocusableItem(
-        onTap: onTap,
-        style: style,
-        child: _InteractiveScale(
-          enabled: onTap != null,
-          pressedScale: style.pressedScale,
-          hoverScale: style.hoverScale,
-          child: tile,
+      child: Opacity(
+        opacity: enabled ? 1.0 : style.disabledOpacity,
+        child: _FocusableItem(
+          enabled: enabled,
+          onTap: onTap,
+          style: style,
+          child: _InteractiveScale(
+            enabled: onTap != null,
+            pressedScale: style.pressedScale,
+            hoverScale: style.hoverScale,
+            child: tile,
+          ),
         ),
       ),
     );
@@ -189,11 +195,13 @@ class _FocusableItem extends StatefulWidget {
   final VoidCallback? onTap;
   final InnovareSideMenuStyle style;
   final Widget child;
+  final bool enabled;
 
   const _FocusableItem({
     required this.onTap,
     required this.style,
     required this.child,
+    this.enabled = true,
   });
 
   @override
@@ -217,6 +225,7 @@ class _FocusableItemState extends State<_FocusableItem> {
   @override
   Widget build(BuildContext context) {
     return Focus(
+      canRequestFocus: widget.enabled,
       onFocusChange: (focused) {
         setState(() => _isFocused = focused);
       },

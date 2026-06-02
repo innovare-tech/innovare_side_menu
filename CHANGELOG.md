@@ -38,6 +38,9 @@
 - Accessibility/Semantics: optional `semanticsLabel` marks the menu as a labeled
   navigation region (`explicitChildNodes`); items now announce their badge (e.g.
   "Inbox, 12 notifications" / "Alerts, notification") via `accessibleLabel`.
+- Disabled items: `InnovareSideMenuItem(enabled: false)` dims the item
+  (`style.disabledOpacity`, default `0.38`), makes it non-focusable, ignores taps
+  and key activation, and marks it disabled to screen readers.
 
 ## 1.0.1
 
