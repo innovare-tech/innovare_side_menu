@@ -41,6 +41,10 @@
 - Disabled items: `InnovareSideMenuItem(enabled: false)` dims the item
   (`style.disabledOpacity`, default `0.38`), makes it non-focusable, ignores taps
   and key activation, and marks it disabled to screen readers.
+- Loading & empty states: `isLoading` renders pulsing skeleton rows
+  (`loadingItemCount`, default 6; reduce-motion aware) and announces "Loading";
+  when there are no visible items the menu shows an empty placeholder, overridable
+  via `emptyState`.
 
 ## 1.0.1
 

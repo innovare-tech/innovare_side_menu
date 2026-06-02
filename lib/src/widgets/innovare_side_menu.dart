@@ -79,6 +79,17 @@ class InnovareSideMenu extends StatefulWidget {
   /// "Main navigation". When `null` (default) no region label is added.
   final String? semanticsLabel;
 
+  /// When `true`, the menu renders pulsing skeleton placeholders instead of its
+  /// items. Defaults to `false`.
+  final bool isLoading;
+
+  /// Number of skeleton rows shown while [isLoading]. Defaults to `6`.
+  final int loadingItemCount;
+
+  /// Widget shown when there are no visible items (after permission filtering).
+  /// Defaults to a simple centered placeholder (nothing when collapsed).
+  final Widget? emptyState;
+
   /// Creates an [InnovareSideMenu].
   ///
   /// The [sections] parameter is required.
@@ -96,6 +107,9 @@ class InnovareSideMenu extends StatefulWidget {
     this.mode = InnovareSideMenuMode.expanded,
     this.modeTransitionDuration,
     this.semanticsLabel,
+    this.isLoading = false,
+    this.loadingItemCount = 6,
+    this.emptyState,
   }) : style = style ?? const InnovareSideMenuStyle();
 
   @override
@@ -326,20 +340,7 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
                           : null),
                   child: activeHeader,
                 ),
-              Expanded(
-                // A SingleChildScrollView (not a lazy ListView) so every row is
-                // mounted — keeps a bounded nav menu's stable keys reachable for
-                // scroll-to-active regardless of viewport size.
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: style.sectionPadding,
-                  physics: widget.scrollPhysics,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: _buildListChildren(showCollapsed, longestMatch),
-                  ),
-                ),
-              ),
+              Expanded(child: _buildBody(showCollapsed, longestMatch)),
               if (activeFooter != null)
                 Container(
                   padding: style.footerPadding,
@@ -395,6 +396,73 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
       explicitChildNodes: true,
       label: semanticsLabel,
       child: navigation,
+    );
+  }
+
+  /// Builds the scrollable body: a loading skeleton, an empty-state placeholder,
+  /// or the scrollable list of sections/items.
+  Widget _buildBody(bool showCollapsed, String? longestMatch) {
+    final style = widget.style;
+
+    if (widget.isLoading) {
+      return Semantics(
+        label: 'Loading',
+        container: true,
+        child: SingleChildScrollView(
+          padding: style.sectionPadding,
+          physics: const NeverScrollableScrollPhysics(),
+          child: _MenuSkeleton(
+            itemCount: widget.loadingItemCount,
+            collapsed: showCollapsed,
+            style: style,
+          ),
+        ),
+      );
+    }
+
+    final children = _buildListChildren(showCollapsed, longestMatch);
+    if (children.isEmpty) {
+      return widget.emptyState ?? _defaultEmptyState(showCollapsed);
+    }
+
+    // A SingleChildScrollView (not a lazy ListView) so every row is mounted —
+    // keeps a bounded nav menu's stable keys reachable for scroll-to-active.
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: style.sectionPadding,
+      physics: widget.scrollPhysics,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _defaultEmptyState(bool showCollapsed) {
+    if (showCollapsed) return const SizedBox.shrink();
+    final color = widget.style.inactiveItemTextColor ??
+        IconTheme.of(context).color ??
+        Theme.of(context).colorScheme.onSurface;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.inbox_outlined,
+              size: 32,
+              color: color.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No items',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: color.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -708,6 +776,115 @@ class _CollapsibleBody extends StatelessWidget {
         curve: Curves.easeInOut,
         child: child,
       ),
+    );
+  }
+}
+
+/// A gently pulsing set of placeholder rows shown while the menu is loading.
+/// Honors `MediaQuery.disableAnimations` (renders static placeholders).
+class _MenuSkeleton extends StatefulWidget {
+  final int itemCount;
+  final bool collapsed;
+  final InnovareSideMenuStyle style;
+
+  const _MenuSkeleton({
+    required this.itemCount,
+    required this.collapsed,
+    required this.style,
+  });
+
+  @override
+  State<_MenuSkeleton> createState() => _MenuSkeletonState();
+}
+
+class _MenuSkeletonState extends State<_MenuSkeleton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final base = widget.style.inactiveItemTextColor ??
+        IconTheme.of(context).color ??
+        Theme.of(context).colorScheme.onSurface;
+    final shapeColor = base.withValues(alpha: 0.15);
+
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < widget.itemCount; i++)
+          _SkeletonRow(color: shapeColor, collapsed: widget.collapsed),
+      ],
+    );
+
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) return column;
+
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.45, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      ),
+      child: column,
+    );
+  }
+}
+
+class _SkeletonRow extends StatelessWidget {
+  final Color color;
+  final bool collapsed;
+
+  const _SkeletonRow({required this.color, required this.collapsed});
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: collapsed
+          ? Center(child: icon)
+          : Row(
+              children: [
+                icon,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
