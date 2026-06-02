@@ -19,6 +19,9 @@
 - Fix (collapsed mode): selecting a sub-item in the fly-out popup now dismisses
   the popup, and a collapsed parent reads as active while its popup is open or
   when any of its sub-items is active.
+- Auto scroll-to-active: the menu reveals the active item on mount and whenever
+  it changes (`autoScrollToActive`, default true). Items keep stable keys so the
+  appearance animation never re-runs on selection changes.
 
 ## 1.0.1
 

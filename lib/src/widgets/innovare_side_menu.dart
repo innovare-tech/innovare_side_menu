@@ -35,7 +35,7 @@ import 'simple_menu_item.dart';
 /// )
 /// ```
 /// {@end-tool}
-class InnovareSideMenu extends StatelessWidget {
+class InnovareSideMenu extends StatefulWidget {
   /// The list of sections to display in the menu.
   final List<InnovareSideMenuSection> sections;
 
@@ -92,10 +92,33 @@ class InnovareSideMenu extends StatelessWidget {
     this.modeTransitionDuration,
   }) : style = style ?? const InnovareSideMenuStyle();
 
-  bool get _isCollapsed => mode == InnovareSideMenuMode.collapsed;
+  @override
+  State<InnovareSideMenu> createState() => _InnovareSideMenuState();
+}
+
+class _InnovareSideMenuState extends State<InnovareSideMenu> {
+  final ScrollController _scrollController = ScrollController();
+
+  /// Stable [GlobalKey] per top-level item id, so wrapping items in a
+  /// [KeyedSubtree] keeps their element/state identity across selection
+  /// changes (no re-running the appear animation) while still letting us
+  /// locate the active row for [Scrollable.ensureVisible].
+  final Map<String, GlobalKey> _itemKeys = {};
+
+  String? _scrolledToActiveId;
+
+  bool get _isCollapsed => widget.mode == InnovareSideMenuMode.collapsed;
 
   Duration get _transitionDuration =>
-      modeTransitionDuration ?? Duration(milliseconds: 300);
+      widget.modeTransitionDuration ?? const Duration(milliseconds: 300);
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) => _itemKeys.putIfAbsent(id, () => GlobalKey());
 
   /// Computa a rota mais específica (mais longa) dentre todos os itens
   /// declarados nas `sections` que dá match com `currentRoute` (match
@@ -112,14 +135,15 @@ class InnovareSideMenu extends StatelessWidget {
   /// numa rota não declarada no menu (ex.: detalhes de entidade) —
   /// ninguém fica ativo.
   String? _findLongestMatchingRoute() {
-    if (currentRoute == null || currentRoute!.isEmpty) return null;
+    final currentRoute = widget.currentRoute;
+    if (currentRoute == null || currentRoute.isEmpty) return null;
 
     String? best;
     void visit(InnovareSideMenuItem item) {
       final route = item.route;
       if (route != null && route.isNotEmpty) {
         final isMatch =
-            currentRoute == route || currentRoute!.startsWith('$route/');
+            currentRoute == route || currentRoute.startsWith('$route/');
         if (isMatch && (best == null || route.length > best!.length)) {
           best = route;
         }
@@ -132,7 +156,7 @@ class InnovareSideMenu extends StatelessWidget {
       }
     }
 
-    for (final section in sections) {
+    for (final section in widget.sections) {
       for (final item in section.items) {
         visit(item);
       }
@@ -140,12 +164,79 @@ class InnovareSideMenu extends StatelessWidget {
     return best;
   }
 
+  /// Id of the first visible top-level item that is active (itself, a
+  /// descendant, or an ancestor of the active route). Drives scroll-to-active.
+  String? _activeTopLevelId(String? longestMatch) {
+    for (final section in widget.sections) {
+      if (!shouldShowSection(section, widget.permissionChecker)) continue;
+      for (final item in section.items) {
+        if (!shouldShowItem(item, widget.permissionChecker)) continue;
+        if (_isActiveOrAncestor(item, longestMatch)) return item.id;
+      }
+    }
+    return null;
+  }
+
+  bool _isActiveOrAncestor(InnovareSideMenuItem item, String? longestMatch) {
+    if (_resolveActiveState(item, longestMatch).isActive) return true;
+    if (_hasActiveDescendant(item)) return true;
+    return _isRouteAncestor(item, longestMatch);
+  }
+
+  bool _hasActiveDescendant(InnovareSideMenuItem item) {
+    final subs = item.subItems;
+    if (subs == null) return false;
+    for (final sub in subs) {
+      if (sub.isActive || _hasActiveDescendant(sub)) return true;
+    }
+    return false;
+  }
+
+  bool _isRouteAncestor(InnovareSideMenuItem item, String? longestMatch) {
+    if (longestMatch == null) return false;
+    final subs = item.subItems;
+    if (subs == null) return false;
+    for (final sub in subs) {
+      if (sub.route == longestMatch || _isRouteAncestor(sub, longestMatch)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Schedules a post-frame [Scrollable.ensureVisible] on the active row when
+  /// it changes. No-op if it has not moved, the row isn't built yet, or the
+  /// list can't scroll (the call is harmless in that case).
+  void _scheduleScrollToActive(BuildContext context, String? activeId) {
+    if (activeId == null || activeId == _scrolledToActiveId) return;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _itemKeys[activeId]?.currentContext;
+      if (ctx == null) return;
+      _scrolledToActiveId = activeId;
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0.5,
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final style = widget.style;
     final targetWidth = _isCollapsed ? style.collapsedWidth : style.width;
     // Computa uma única vez por build. Evita O(N) por item nos re-renders
     // de `_resolveActiveState` — custo amortizado no hot path.
     final longestMatch = _findLongestMatchingRoute();
+
+    if (style.autoScrollToActive) {
+      _scheduleScrollToActive(context, _activeTopLevelId(longestMatch));
+    }
 
     return AnimatedContainer(
       duration: _transitionDuration,
@@ -162,8 +253,10 @@ class InnovareSideMenu extends StatelessWidget {
           final widthThreshold = (style.width + style.collapsedWidth) / 2;
           final showCollapsed = constraints.maxWidth < widthThreshold;
 
-          final activeHeader = showCollapsed ? collapsedHeader : header;
-          final activeFooter = showCollapsed ? collapsedFooter : footer;
+          final activeHeader =
+              showCollapsed ? widget.collapsedHeader : widget.header;
+          final activeFooter =
+              showCollapsed ? widget.collapsedFooter : widget.footer;
 
           return Column(
             children: [
@@ -179,10 +272,17 @@ class InnovareSideMenu extends StatelessWidget {
                   child: activeHeader,
                 ),
               Expanded(
-                child: ListView(
+                // A SingleChildScrollView (not a lazy ListView) so every row is
+                // mounted — keeps a bounded nav menu's stable keys reachable for
+                // scroll-to-active regardless of viewport size.
+                child: SingleChildScrollView(
+                  controller: _scrollController,
                   padding: style.sectionPadding,
-                  physics: scrollPhysics,
-                  children: _buildListChildren(showCollapsed, longestMatch),
+                  physics: widget.scrollPhysics,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _buildListChildren(showCollapsed, longestMatch),
+                  ),
                 ),
               ),
               if (activeFooter != null)
@@ -204,13 +304,15 @@ class InnovareSideMenu extends StatelessWidget {
   }
 
   /// Flattens the visible sections/items into a single child list, wrapping
-  /// each item in an [_Appear] so they cascade into view (staggered by index).
+  /// each item in an [_Appear] so they cascade into view (staggered by index)
+  /// and a [KeyedSubtree] with a stable key for scroll-to-active.
   List<Widget> _buildListChildren(bool showCollapsed, String? longestMatch) {
+    final style = widget.style;
     final children = <Widget>[];
     var appearIndex = 0;
-    for (var i = 0; i < sections.length; i++) {
-      final section = sections[i];
-      if (!shouldShowSection(section, permissionChecker)) continue;
+    for (var i = 0; i < widget.sections.length; i++) {
+      final section = widget.sections[i];
+      if (!shouldShowSection(section, widget.permissionChecker)) continue;
       if (showCollapsed) {
         if (i > 0) children.add(const Divider(height: 1));
       } else if (section.title != null) {
@@ -227,14 +329,17 @@ class InnovareSideMenu extends StatelessWidget {
         );
       }
       for (final item in section.items) {
-        if (!shouldShowItem(item, permissionChecker)) continue;
+        if (!shouldShowItem(item, widget.permissionChecker)) continue;
         children.add(
-          _Appear(
-            index: appearIndex++,
-            enabled: style.animateOnAppear,
-            duration: style.appearAnimationDuration,
-            interval: style.appearStaggerInterval,
-            child: _buildMenuItem(item, showCollapsed, longestMatch),
+          KeyedSubtree(
+            key: _keyFor(item.id),
+            child: _Appear(
+              index: appearIndex++,
+              enabled: style.animateOnAppear,
+              duration: style.appearAnimationDuration,
+              interval: style.appearStaggerInterval,
+              child: _buildMenuItem(item, showCollapsed, longestMatch),
+            ),
           ),
         );
       }
@@ -247,6 +352,7 @@ class InnovareSideMenu extends StatelessWidget {
     bool showCollapsed,
     String? longestMatch,
   ) {
+    final style = widget.style;
     // Auto-match: se currentRoute corresponde ao item.route E esse item
     // tem a rota mais específica dentre todos os matches, marca como
     // active. Isso evita que múltiplos itens (pai + filho) fiquem ativos
@@ -257,18 +363,19 @@ class InnovareSideMenu extends StatelessWidget {
       return CollapsedMenuItem(
         item: resolvedItem,
         style: style,
-        permissionChecker: permissionChecker,
+        permissionChecker: widget.permissionChecker,
       );
     }
 
-    final hasSubItems = resolvedItem.subItems != null && resolvedItem.subItems!.isNotEmpty;
+    final hasSubItems =
+        resolvedItem.subItems != null && resolvedItem.subItems!.isNotEmpty;
 
     if (hasSubItems) {
       return ExpandableMenuItem(
         item: resolvedItem,
         style: style,
-        currentRoute: currentRoute,
-        permissionChecker: permissionChecker,
+        currentRoute: widget.currentRoute,
+        permissionChecker: widget.permissionChecker,
       );
     }
 
@@ -285,7 +392,8 @@ class InnovareSideMenu extends StatelessWidget {
     InnovareSideMenuItem item,
     String? longestMatch,
   ) {
-    if (currentRoute == null || currentRoute!.isEmpty) return item;
+    final currentRoute = widget.currentRoute;
+    if (currentRoute == null || currentRoute.isEmpty) return item;
     if (item.route == null) return item;
 
     // Só fica ativo se este item tem EXATAMENTE a rota mais específica

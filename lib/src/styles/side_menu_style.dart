@@ -205,6 +205,10 @@ class InnovareSideMenuStyle {
   /// (no scale — relies on the hover color).
   final double hoverScale;
 
+  /// Whether the menu auto-scrolls to reveal the active item on mount and when
+  /// the active item changes. Defaults to `true`.
+  final bool autoScrollToActive;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -274,6 +278,7 @@ class InnovareSideMenuStyle {
     this.enableHaptics = true,
     this.pressedScale = 0.97,
     this.hoverScale = 1.0,
+    this.autoScrollToActive = true,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -342,6 +347,7 @@ class InnovareSideMenuStyle {
     bool? enableHaptics,
     double? pressedScale,
     double? hoverScale,
+    bool? autoScrollToActive,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -433,6 +439,7 @@ class InnovareSideMenuStyle {
       enableHaptics: enableHaptics ?? this.enableHaptics,
       pressedScale: pressedScale ?? this.pressedScale,
       hoverScale: hoverScale ?? this.hoverScale,
+      autoScrollToActive: autoScrollToActive ?? this.autoScrollToActive,
     );
   }
 }
