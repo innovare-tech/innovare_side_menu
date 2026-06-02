@@ -1,6 +1,5 @@
 # Innovare Side Menu
 
-[![pub package](https://img.shields.io/pub/v/innovare_side_menu.svg)](https://pub.dev/packages/innovare_side_menu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-%E2%89%A53.27-02569B?logo=flutter)](https://flutter.dev)
 
@@ -25,12 +24,17 @@ A beautiful, highly customizable side menu widget for Flutter. Supports expanded
 
 ## Getting Started
 
-Add the dependency to your `pubspec.yaml`:
+`innovare_side_menu` is distributed via GitHub (not pub.dev). Add it as a git dependency, pinned to a tag:
 
 ```yaml
 dependencies:
-  innovare_side_menu: ^1.1.0
+  innovare_side_menu:
+    git:
+      url: https://github.com/innovare-tech/innovare_side_menu.git
+      ref: v1.1.0
 ```
+
+It depends on the [Innovare Design System](https://github.com/innovare-tech/innovare_design), which is resolved automatically from the same source — consumers don't need any extra dependency or override.
 
 Then import it:
 

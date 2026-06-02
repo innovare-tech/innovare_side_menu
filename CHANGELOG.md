@@ -4,7 +4,9 @@
   menu style directly from the [Innovare Design System](https://github.com/innovare-tech/innovare_design)
   tokens (brand color, corner shape, type scale, depth and motion personality),
   so the menu re-skins per client from a single source of truth.
-- Add `innovare_design` as a dependency (used by the new factory).
+- Add `innovare_design` as a dependency (used by the new factory), resolved from
+  its GitHub tag. This package is distributed via Git (not pub.dev), so
+  consumers get `innovare_design` transitively with no extra setup.
 - Raise minimum SDK to Dart 3.6 / Flutter 3.27 (required by `innovare_design`).
 - Motion: items now animate their active/hover state (decoration, label and
   icon color crossfade) and cascade into view on first appearance. Honors

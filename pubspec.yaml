@@ -1,6 +1,9 @@
 name: innovare_side_menu
 description: A beautiful, highly customizable side menu widget for Flutter with expanded/collapsed modes, badges, permission filtering, and 5 built-in themes.
 version: 1.1.0
+# Distributed via GitHub (git dependency + tags), not pub.dev. Required so the
+# analyzer permits the innovare_design git dependency below.
+publish_to: none
 homepage: https://github.com/innovare-tech/innovare_side_menu
 repository: https://github.com/innovare-tech/innovare_side_menu
 issue_tracker: https://github.com/innovare-tech/innovare_side_menu/issues
@@ -27,16 +30,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  innovare_design: ^0.0.1
+  # innovare_design is distributed via GitHub (not pub.dev). Consumers resolve
+  # it transitively from this git ref — no override needed on their side.
+  # Bump `ref` when adopting a newer innovare_design tag.
+  innovare_design:
+    git:
+      url: https://github.com/innovare-tech/innovare_design.git
+      ref: v0.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
-# innovare_design is part of this monorepo and not yet on pub.dev. The override
-# resolves it locally during development; once published, drop this section and
-# the hosted constraint above takes over.
+# Local-development convenience only: resolve innovare_design from the in-repo
+# working copy so local changes are picked up without re-tagging. This override
+# is ignored by anyone consuming this package — they get the git `ref` pinned in
+# `dependencies` above. Remove it to build exactly against the tagged version.
 dependency_overrides:
   innovare_design:
     path: ../innovare_design
