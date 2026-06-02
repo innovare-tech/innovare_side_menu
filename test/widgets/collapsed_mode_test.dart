@@ -99,6 +99,121 @@ void main() {
       expect(find.text('Child 1'), findsOneWidget);
     });
 
+    testWidgets('tapping a sub-item in the popup closes the popup',
+        (tester) async {
+      var childTapped = false;
+      await tester.pumpWidget(buildApp(
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'parent',
+                title: 'Parent',
+                icon: Icons.folder,
+                subItems: [
+                  InnovareSideMenuItem(
+                    id: 'child1',
+                    title: 'Child 1',
+                    icon: Icons.file_copy,
+                    onTap: () => childTapped = true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.folder));
+      await tester.pumpAndSettle();
+      expect(find.text('Child 1'), findsOneWidget);
+
+      // Selecting a sub-item should fire its onTap AND dismiss the popup.
+      await tester.tap(find.text('Child 1'));
+      await tester.pumpAndSettle();
+
+      expect(childTapped, isTrue);
+      expect(find.text('Child 1'), findsNothing);
+    });
+
+    testWidgets('collapsed parent shows active decoration while its popup is open',
+        (tester) async {
+      const activeDecoration = BoxDecoration(color: Colors.red);
+      await tester.pumpWidget(buildApp(
+        style: InnovareSideMenuStyle(
+          collapsedWidth: 72,
+          collapsedActiveItemDecoration: activeDecoration,
+        ),
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'parent',
+                title: 'Parent',
+                icon: Icons.folder,
+                subItems: [
+                  InnovareSideMenuItem(
+                    id: 'child1',
+                    title: 'Child 1',
+                    icon: Icons.file_copy,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ));
+      await tester.pumpAndSettle();
+
+      bool hasActiveDecoration() => tester
+          .widgetList<Container>(find.byType(Container))
+          .any((c) => c.decoration == activeDecoration);
+
+      expect(hasActiveDecoration(), isFalse);
+
+      await tester.tap(find.byIcon(Icons.folder));
+      await tester.pumpAndSettle();
+
+      expect(hasActiveDecoration(), isTrue);
+    });
+
+    testWidgets('collapsed parent is active when one of its sub-items is active',
+        (tester) async {
+      const activeDecoration = BoxDecoration(color: Colors.red);
+      await tester.pumpWidget(buildApp(
+        style: InnovareSideMenuStyle(
+          collapsedWidth: 72,
+          collapsedActiveItemDecoration: activeDecoration,
+        ),
+        sections: [
+          InnovareSideMenuSection(
+            items: [
+              InnovareSideMenuItem(
+                id: 'parent',
+                title: 'Parent',
+                icon: Icons.folder,
+                subItems: [
+                  InnovareSideMenuItem(
+                    id: 'child1',
+                    title: 'Child 1',
+                    icon: Icons.file_copy,
+                    isActive: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ));
+      await tester.pumpAndSettle();
+
+      final hasActiveDecoration = tester
+          .widgetList<Container>(find.byType(Container))
+          .any((c) => c.decoration == activeDecoration);
+      expect(hasActiveDecoration, isTrue);
+    });
+
     testWidgets(
         'transition from expanded to collapsed uses AnimatedContainer',
         (tester) async {

@@ -16,6 +16,9 @@
   (`pressedScale`, default 0.97), an optional hover scale (`hoverScale`) and a
   selection haptic on tap (`enableHaptics`, default true) — including the
   collapsed rail and expandable rows.
+- Fix (collapsed mode): selecting a sub-item in the fly-out popup now dismisses
+  the popup, and a collapsed parent reads as active while its popup is open or
+  when any of its sub-items is active.
 
 ## 1.0.1
 

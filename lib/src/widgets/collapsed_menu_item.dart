@@ -93,11 +93,24 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
     });
   }
 
+  bool _hasActiveSubItem(InnovareSideMenuItem item) {
+    final subs = item.subItems;
+    if (subs == null) return false;
+    for (final sub in subs) {
+      if (sub.isActive || _hasActiveSubItem(sub)) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isActive = widget.item.isActive;
     final hasSubItems =
         widget.item.subItems != null && widget.item.subItems!.isNotEmpty;
+    // A collapsed parent reflects its section: it reads as active when it (or
+    // any descendant) is active, and while its sub-items popup is open.
+    final isActive = widget.item.isActive ||
+        _hasActiveSubItem(widget.item) ||
+        (hasSubItems && _isPopupOpen);
 
     final decoration = isActive
         ? widget.style.collapsedActiveItemDecoration
@@ -262,7 +275,12 @@ class _SubItemsPopup extends StatelessWidget {
                   for (var subItem in item.subItems!)
                     if (shouldShowItem(subItem, permissionChecker))
                       SimpleMenuItem(
-                        item: subItem,
+                        item: subItem.copyWith(
+                          onTap: () {
+                            subItem.onTap?.call();
+                            onClose();
+                          },
+                        ),
                         style: style,
                         isSubItem: true,
                       ),
