@@ -4,7 +4,8 @@ import 'package:innovare_side_menu/innovare_side_menu.dart';
 
 void main() {
   group('Semantics', () {
-    testWidgets('item labels include badge descriptions; menu has a region label',
+    testWidgets(
+        'item labels include badge descriptions; menu has a region label',
         (tester) async {
       final handle = tester.ensureSemantics();
 

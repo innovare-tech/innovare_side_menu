@@ -64,16 +64,14 @@ void main() {
     });
 
     test('fromTheme accepts ThemeData.light() without exception', () {
-      final style =
-          InnovareSideMenuThemes.fromTheme(ThemeData.light());
+      final style = InnovareSideMenuThemes.fromTheme(ThemeData.light());
 
       expect(style.width, greaterThan(0));
       expect(style.decoration, isNotNull);
     });
 
     test('fromTheme accepts ThemeData.dark() without exception', () {
-      final style =
-          InnovareSideMenuThemes.fromTheme(ThemeData.dark());
+      final style = InnovareSideMenuThemes.fromTheme(ThemeData.dark());
 
       expect(style.width, greaterThan(0));
       expect(style.decoration, isNotNull);

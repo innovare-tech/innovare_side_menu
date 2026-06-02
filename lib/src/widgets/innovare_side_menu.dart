@@ -150,25 +150,13 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   Duration get _transitionDuration =>
       widget.modeTransitionDuration ?? const Duration(milliseconds: 300);
 
-  /// Scopes focus traversal to the menu so Home/End can target its edges.
-  final FocusScopeNode _menuScope =
-      FocusScopeNode(debugLabel: 'InnovareSideMenu');
-
   @override
   void dispose() {
-    _menuScope.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   GlobalKey _keyFor(String id) => _itemKeys.putIfAbsent(id, () => GlobalKey());
-
-  /// Moves focus to the first or last focusable item (Home/End keys).
-  void _focusEdgeItem({required bool first}) {
-    final nodes = _menuScope.traversalDescendants.toList();
-    if (nodes.isEmpty) return;
-    (first ? nodes.first : nodes.last).requestFocus();
-  }
 
   void _toggleSection(String title) {
     if (widget.style.enableHaptics) HapticFeedback.selectionClick();
@@ -297,8 +285,7 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
     final collapsed = _isCollapsed || autoCollapse;
     final hoverExpand = collapsed && style.expandOnHover;
     final effectiveCollapsed = collapsed && !(hoverExpand && _hovering);
-    final targetWidth =
-        effectiveCollapsed ? style.collapsedWidth : style.width;
+    final targetWidth = effectiveCollapsed ? style.collapsedWidth : style.width;
     // Computa uma única vez por build. Evita O(N) por item nos re-renders
     // de `_resolveActiveState` — custo amortizado no hot path.
     final longestMatch = _findLongestMatchingRoute();
@@ -371,31 +358,13 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
       );
     }
 
-    // Scope focus traversal to the menu and add Home/End shortcuts. Arrow keys
-    // already move focus directionally via the app's default shortcuts.
-    final Widget navigation = FocusScope(
-      node: _menuScope,
-      child: FocusTraversalGroup(
-        policy: ReadingOrderTraversalPolicy(),
-        child: CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.home): () =>
-                _focusEdgeItem(first: true),
-            const SingleActivator(LogicalKeyboardKey.end): () =>
-                _focusEdgeItem(first: false),
-          },
-          child: result,
-        ),
-      ),
-    );
-
     final semanticsLabel = widget.semanticsLabel;
-    if (semanticsLabel == null) return navigation;
+    if (semanticsLabel == null) return result;
     return Semantics(
       container: true,
       explicitChildNodes: true,
       label: semanticsLabel,
-      child: navigation,
+      child: result,
     );
   }
 
@@ -664,8 +633,9 @@ class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
     // widget test-friendly (no pending timers) while still cascading.
     final total = delay + widget.duration;
     _controller.duration = total;
-    final startFraction =
-        total.inMicroseconds == 0 ? 0.0 : delay.inMicroseconds / total.inMicroseconds;
+    final startFraction = total.inMicroseconds == 0
+        ? 0.0
+        : delay.inMicroseconds / total.inMicroseconds;
     _animation = CurvedAnimation(
       parent: _controller,
       curve: Interval(startFraction, 1, curve: Curves.easeOutCubic),

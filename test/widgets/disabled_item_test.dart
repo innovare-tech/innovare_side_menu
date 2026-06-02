@@ -5,7 +5,8 @@ import 'package:innovare_side_menu/innovare_side_menu.dart';
 
 void main() {
   group('Disabled items', () {
-    testWidgets('ignores taps and is dimmed by disabledOpacity', (tester) async {
+    testWidgets('ignores taps and is dimmed by disabledOpacity',
+        (tester) async {
       var taps = 0;
       await tester.pumpWidget(
         MaterialApp(
@@ -85,7 +86,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.sendKeyEvent(LogicalKeyboardKey.tab); // skips disabled -> Enabled
+      await tester
+          .sendKeyEvent(LogicalKeyboardKey.tab); // skips disabled -> Enabled
       await tester.pumpAndSettle();
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();

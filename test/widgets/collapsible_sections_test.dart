@@ -29,8 +29,10 @@ void main() {
       collapsible: collapsible,
       initiallyExpanded: initiallyExpanded,
       items: const [
-        InnovareSideMenuItem(id: 'a', title: 'Alpha', icon: Icons.circle_outlined),
-        InnovareSideMenuItem(id: 'b', title: 'Beta', icon: Icons.circle_outlined),
+        InnovareSideMenuItem(
+            id: 'a', title: 'Alpha', icon: Icons.circle_outlined),
+        InnovareSideMenuItem(
+            id: 'b', title: 'Beta', icon: Icons.circle_outlined),
       ],
     );
   }

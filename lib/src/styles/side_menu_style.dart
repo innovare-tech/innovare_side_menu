@@ -387,16 +387,12 @@ class InnovareSideMenuStyle {
       itemIconSize: itemIconSize ?? this.itemIconSize,
       itemIconPadding: itemIconPadding ?? this.itemIconPadding,
       itemIconBorderRadius: itemIconBorderRadius ?? this.itemIconBorderRadius,
-      activeItemDecoration:
-          activeItemDecoration ?? this.activeItemDecoration,
-      activeItemTextColor:
-          activeItemTextColor ?? this.activeItemTextColor,
-      activeItemIconColor:
-          activeItemIconColor ?? this.activeItemIconColor,
+      activeItemDecoration: activeItemDecoration ?? this.activeItemDecoration,
+      activeItemTextColor: activeItemTextColor ?? this.activeItemTextColor,
+      activeItemIconColor: activeItemIconColor ?? this.activeItemIconColor,
       activeItemIconDecoration:
           activeItemIconDecoration ?? this.activeItemIconDecoration,
-      activeItemFontWeight:
-          activeItemFontWeight ?? this.activeItemFontWeight,
+      activeItemFontWeight: activeItemFontWeight ?? this.activeItemFontWeight,
       inactiveItemDecoration:
           inactiveItemDecoration ?? this.inactiveItemDecoration,
       inactiveItemTextColor:
@@ -412,8 +408,7 @@ class InnovareSideMenuStyle {
       subItemMargin: subItemMargin ?? this.subItemMargin,
       subItemIndentation: subItemIndentation ?? this.subItemIndentation,
       subItemIconSize: subItemIconSize ?? this.subItemIconSize,
-      subItemBorderRadius:
-          subItemBorderRadius ?? this.subItemBorderRadius,
+      subItemBorderRadius: subItemBorderRadius ?? this.subItemBorderRadius,
       activeSubItemDecoration:
           activeSubItemDecoration ?? this.activeSubItemDecoration,
       inactiveSubItemDecoration:
@@ -434,14 +429,12 @@ class InnovareSideMenuStyle {
       itemFontSize: itemFontSize ?? this.itemFontSize,
       subItemFontSize: subItemFontSize ?? this.subItemFontSize,
       collapsedWidth: collapsedWidth ?? this.collapsedWidth,
-      collapsedItemPadding:
-          collapsedItemPadding ?? this.collapsedItemPadding,
+      collapsedItemPadding: collapsedItemPadding ?? this.collapsedItemPadding,
       collapsedIconSize: collapsedIconSize ?? this.collapsedIconSize,
       collapsedActiveItemDecoration:
           collapsedActiveItemDecoration ?? this.collapsedActiveItemDecoration,
-      collapsedInactiveItemDecoration:
-          collapsedInactiveItemDecoration ??
-              this.collapsedInactiveItemDecoration,
+      collapsedInactiveItemDecoration: collapsedInactiveItemDecoration ??
+          this.collapsedInactiveItemDecoration,
       badgeSize: badgeSize ?? this.badgeSize,
       badgeColor: badgeColor ?? this.badgeColor,
       badgeTextColor: badgeTextColor ?? this.badgeTextColor,

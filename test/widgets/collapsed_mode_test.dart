@@ -42,8 +42,7 @@ void main() {
   }
 
   group('Collapsed Mode', () {
-    testWidgets('menu with mode collapsed has collapsedWidth',
-        (tester) async {
+    testWidgets('menu with mode collapsed has collapsedWidth', (tester) async {
       await tester.pumpWidget(buildApp(
         style: InnovareSideMenuStyle(collapsedWidth: 80),
       ));
@@ -137,7 +136,8 @@ void main() {
       expect(find.text('Child 1'), findsNothing);
     });
 
-    testWidgets('collapsed parent shows active decoration while its popup is open',
+    testWidgets(
+        'collapsed parent shows active decoration while its popup is open',
         (tester) async {
       const activeDecoration = BoxDecoration(color: Colors.red);
       await tester.pumpWidget(buildApp(
@@ -178,7 +178,8 @@ void main() {
       expect(hasActiveDecoration(), isTrue);
     });
 
-    testWidgets('collapsed parent is active when one of its sub-items is active',
+    testWidgets(
+        'collapsed parent is active when one of its sub-items is active',
         (tester) async {
       const activeDecoration = BoxDecoration(color: Colors.red);
       await tester.pumpWidget(buildApp(
@@ -214,8 +215,7 @@ void main() {
       expect(hasActiveDecoration, isTrue);
     });
 
-    testWidgets(
-        'transition from expanded to collapsed uses AnimatedContainer',
+    testWidgets('transition from expanded to collapsed uses AnimatedContainer',
         (tester) async {
       await tester.pumpWidget(buildApp(
         mode: InnovareSideMenuMode.expanded,

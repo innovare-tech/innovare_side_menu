@@ -46,8 +46,7 @@ void main() {
 
       expect(menuWidth(tester), 72);
 
-      final gesture =
-          await tester.createGesture(kind: PointerDeviceKind.mouse);
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(
         location: tester.getCenter(find.byIcon(Icons.home)),
       );
@@ -66,8 +65,7 @@ void main() {
       await tester.pumpWidget(buildApp(expandOnHover: false));
       await tester.pumpAndSettle();
 
-      final gesture =
-          await tester.createGesture(kind: PointerDeviceKind.mouse);
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(
         location: tester.getCenter(find.byIcon(Icons.home)),
       );

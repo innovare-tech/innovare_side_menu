@@ -38,8 +38,7 @@ void main() {
   }
 
   group('Accessibility', () {
-    testWidgets(
-        'item with semanticLabel has Semantics with that label',
+    testWidgets('item with semanticLabel has Semantics with that label',
         (tester) async {
       await tester.pumpWidget(buildApp(
         sections: [
@@ -63,8 +62,7 @@ void main() {
       expect(finder, findsOneWidget);
     });
 
-    testWidgets(
-        'item with isActive true has Semantics selected true',
+    testWidgets('item with isActive true has Semantics selected true',
         (tester) async {
       await tester.pumpWidget(buildApp(
         sections: [
@@ -91,8 +89,7 @@ void main() {
       expect(finder, findsOneWidget);
     });
 
-    testWidgets(
-        'sending Enter key on focused item triggers onTap',
+    testWidgets('sending Enter key on focused item triggers onTap',
         (tester) async {
       bool tapped = false;
 
@@ -123,8 +120,7 @@ void main() {
       expect(tapped, true);
     });
 
-    testWidgets(
-        'expandable item expanded has Semantics expanded true',
+    testWidgets('expandable item expanded has Semantics expanded true',
         (tester) async {
       await tester.pumpWidget(buildApp(
         sections: [

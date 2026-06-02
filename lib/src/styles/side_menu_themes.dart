@@ -95,8 +95,7 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(8),
-        border:
-            Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
       ),
       inactiveSubItemDecoration: BoxDecoration(
         color: Colors.transparent,
@@ -187,8 +186,7 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
       inactiveItemTextColor: theme.colorScheme.onSurface,
       inactiveItemIconColor: theme.colorScheme.onSurfaceVariant,
       inactiveItemIconDecoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(10),
       ),
       inactiveItemFontWeight: FontWeight.w500,
