@@ -21,3 +21,6 @@ dev_dependencies:
 dependency_overrides:
   innovare_design:
     path: ../../innovare_design
+
+flutter:
+  uses-material-design: true
