@@ -257,8 +257,15 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   @override
   Widget build(BuildContext context) {
     final style = widget.style;
-    final hoverExpand = _isCollapsed && style.expandOnHover;
-    final effectiveCollapsed = _isCollapsed && !(hoverExpand && _hovering);
+    // Responsive auto-rail: collapse below a screen-width breakpoint, no matter
+    // what `mode` says.
+    final screenWidth = MediaQuery.maybeSizeOf(context)?.width;
+    final autoCollapse = style.autoCollapseBelowWidth != null &&
+        screenWidth != null &&
+        screenWidth < style.autoCollapseBelowWidth!;
+    final collapsed = _isCollapsed || autoCollapse;
+    final hoverExpand = collapsed && style.expandOnHover;
+    final effectiveCollapsed = collapsed && !(hoverExpand && _hovering);
     final targetWidth =
         effectiveCollapsed ? style.collapsedWidth : style.width;
     // Computa uma única vez por build. Evita O(N) por item nos re-renders

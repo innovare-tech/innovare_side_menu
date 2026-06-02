@@ -28,6 +28,9 @@
 - Hover-to-expand: set `expandOnHover: true` so a collapsed rail expands in place
   while the pointer hovers it (desktop/web), revealing labels via the existing
   width transition, then collapses on exit.
+- Responsive auto-rail: set `autoCollapseBelowWidth` so the menu auto-collapses
+  to a rail on narrow screens regardless of `mode`. For a mobile hamburger
+  drawer, place the menu inside `Scaffold.drawer`.
 
 ## 1.0.1
 

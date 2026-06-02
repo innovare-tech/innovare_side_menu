@@ -213,6 +213,10 @@ class InnovareSideMenuStyle {
   /// (desktop/web). Defaults to `false`.
   final bool expandOnHover;
 
+  /// When the screen is narrower than this width (logical px), the menu renders
+  /// as a collapsed rail regardless of `mode`. `null` disables it (default).
+  final double? autoCollapseBelowWidth;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -284,6 +288,7 @@ class InnovareSideMenuStyle {
     this.hoverScale = 1.0,
     this.autoScrollToActive = true,
     this.expandOnHover = false,
+    this.autoCollapseBelowWidth,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -354,6 +359,7 @@ class InnovareSideMenuStyle {
     double? hoverScale,
     bool? autoScrollToActive,
     bool? expandOnHover,
+    double? autoCollapseBelowWidth,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -447,6 +453,8 @@ class InnovareSideMenuStyle {
       hoverScale: hoverScale ?? this.hoverScale,
       autoScrollToActive: autoScrollToActive ?? this.autoScrollToActive,
       expandOnHover: expandOnHover ?? this.expandOnHover,
+      autoCollapseBelowWidth:
+          autoCollapseBelowWidth ?? this.autoCollapseBelowWidth,
     );
   }
 }
