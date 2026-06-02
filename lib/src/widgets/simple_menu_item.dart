@@ -221,21 +221,27 @@ class _FocusableItemState extends State<_FocusableItem> {
         setState(() => _isFocused = focused);
       },
       onKeyEvent: _handleKeyEvent,
-      child: Builder(
-        builder: (context) {
-          if (!_isFocused) return widget.child;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
+      // ExcludeFocus keeps the inner ListTile's InkWell out of focus traversal
+      // so each item is a single focus stop — required for clean arrow/Home/End
+      // navigation. Taps and Enter/Space activation still work.
+      child: ExcludeFocus(
+        child: Builder(
+          builder: (context) {
+            if (!_isFocused) return widget.child;
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+                borderRadius:
+                    widget.style.itemBorderRadius ?? BorderRadius.circular(4),
               ),
-              borderRadius: widget.style.itemBorderRadius ?? BorderRadius.circular(4),
-            ),
-            position: DecorationPosition.foreground,
-            child: widget.child,
-          );
-        },
+              position: DecorationPosition.foreground,
+              child: widget.child,
+            );
+          },
+        ),
       ),
     );
   }

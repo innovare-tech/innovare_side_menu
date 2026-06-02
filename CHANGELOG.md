@@ -31,6 +31,10 @@
 - Responsive auto-rail: set `autoCollapseBelowWidth` so the menu auto-collapses
   to a rail on narrow screens regardless of `mode`. For a mobile hamburger
   drawer, place the menu inside `Scaffold.drawer`.
+- Keyboard navigation: arrow keys move focus between items, Home/End jump to the
+  first/last item, and Enter/Space activate. The menu is a scoped focus
+  traversal group and each item is now a single focus stop (the inner `ListTile`
+  is excluded from traversal), fixing erratic arrow-key focus.
 
 ## 1.0.1
 

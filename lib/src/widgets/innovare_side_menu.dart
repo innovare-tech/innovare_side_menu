@@ -131,13 +131,25 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   Duration get _transitionDuration =>
       widget.modeTransitionDuration ?? const Duration(milliseconds: 300);
 
+  /// Scopes focus traversal to the menu so Home/End can target its edges.
+  final FocusScopeNode _menuScope =
+      FocusScopeNode(debugLabel: 'InnovareSideMenu');
+
   @override
   void dispose() {
+    _menuScope.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   GlobalKey _keyFor(String id) => _itemKeys.putIfAbsent(id, () => GlobalKey());
+
+  /// Moves focus to the first or last focusable item (Home/End keys).
+  void _focusEdgeItem({required bool first}) {
+    final nodes = _menuScope.traversalDescendants.toList();
+    if (nodes.isEmpty) return;
+    (first ? nodes.first : nodes.last).requestFocus();
+  }
 
   void _toggleSection(String title) {
     if (widget.style.enableHaptics) HapticFeedback.selectionClick();
@@ -340,18 +352,36 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
       ),
     );
 
+    Widget result = menu;
     if (hoverExpand) {
-      return MouseRegion(
+      result = MouseRegion(
         onEnter: (_) {
           if (!_hovering) setState(() => _hovering = true);
         },
         onExit: (_) {
           if (_hovering) setState(() => _hovering = false);
         },
-        child: menu,
+        child: result,
       );
     }
-    return menu;
+
+    // Scope focus traversal to the menu and add Home/End shortcuts. Arrow keys
+    // already move focus directionally via the app's default shortcuts.
+    return FocusScope(
+      node: _menuScope,
+      child: FocusTraversalGroup(
+        policy: ReadingOrderTraversalPolicy(),
+        child: CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.home): () =>
+                _focusEdgeItem(first: true),
+            const SingleActivator(LogicalKeyboardKey.end): () =>
+                _focusEdgeItem(first: false),
+          },
+          child: result,
+        ),
+      ),
+    );
   }
 
   /// Flattens the visible sections/items into a single child list, wrapping
