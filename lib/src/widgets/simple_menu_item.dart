@@ -45,17 +45,13 @@ class SimpleMenuItem extends StatelessWidget {
             : style.inactiveItemDecoration);
 
     final textColor = isActive
-        ? (isSubItem
-            ? style.activeSubItemTextColor
-            : style.activeItemTextColor)
+        ? (isSubItem ? style.activeSubItemTextColor : style.activeItemTextColor)
         : (isSubItem
             ? style.inactiveSubItemTextColor
             : style.inactiveItemTextColor);
 
     final iconColor = isActive
-        ? (isSubItem
-            ? style.activeSubItemIconColor
-            : style.activeItemIconColor)
+        ? (isSubItem ? style.activeSubItemIconColor : style.activeItemIconColor)
         : (isSubItem
             ? style.inactiveSubItemIconColor
             : style.inactiveItemIconColor);
@@ -64,9 +60,8 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemIconDecoration
         : style.inactiveItemIconDecoration;
 
-    final fontWeight = isActive
-        ? style.activeItemFontWeight
-        : style.inactiveItemFontWeight;
+    final fontWeight =
+        isActive ? style.activeItemFontWeight : style.inactiveItemFontWeight;
 
     final enabled = item.enabled;
     final baseOnTap = enabled ? item.onTap : null;
@@ -209,7 +204,14 @@ class _FocusableItem extends StatefulWidget {
 }
 
 class _FocusableItemState extends State<_FocusableItem> {
+  final FocusNode _focusNode = FocusNode();
   bool _isFocused = false;
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
@@ -225,31 +227,38 @@ class _FocusableItemState extends State<_FocusableItem> {
   @override
   Widget build(BuildContext context) {
     return Focus(
+      focusNode: _focusNode,
       canRequestFocus: widget.enabled,
       onFocusChange: (focused) {
         setState(() => _isFocused = focused);
       },
       onKeyEvent: _handleKeyEvent,
-      // ExcludeFocus keeps the inner ListTile's InkWell out of focus traversal
-      // so each item is a single focus stop — required for clean arrow/Home/End
-      // navigation. Taps and Enter/Space activation still work.
-      child: ExcludeFocus(
-        child: Builder(
-          builder: (context) {
-            if (!_isFocused) return widget.child;
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
+      // A Listener focuses the row on press so that clicking/tapping an item
+      // hands control to the arrow keys from there. ExcludeFocus keeps the inner
+      // ListTile's InkWell out of traversal so each item is a single focus stop
+      // — required for clean arrow/Home/End navigation. Taps and Enter/Space
+      // activation still work.
+      child: Listener(
+        behavior: HitTestBehavior.deferToChild,
+        onPointerDown: widget.enabled ? (_) => _focusNode.requestFocus() : null,
+        child: ExcludeFocus(
+          child: Builder(
+            builder: (context) {
+              if (!_isFocused) return widget.child;
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                  borderRadius:
+                      widget.style.itemBorderRadius ?? BorderRadius.circular(4),
                 ),
-                borderRadius:
-                    widget.style.itemBorderRadius ?? BorderRadius.circular(4),
-              ),
-              position: DecorationPosition.foreground,
-              child: widget.child,
-            );
-          },
+                position: DecorationPosition.foreground,
+                child: widget.child,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -302,7 +311,8 @@ class _InteractiveScaleState extends State<_InteractiveScale> {
 
     final scaled = AnimatedScale(
       scale: scale,
-      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
+      duration:
+          reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
       curve: Curves.easeOut,
       child: widget.child,
     );

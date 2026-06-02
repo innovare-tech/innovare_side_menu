@@ -31,10 +31,12 @@
 - Responsive auto-rail: set `autoCollapseBelowWidth` so the menu auto-collapses
   to a rail on narrow screens regardless of `mode`. For a mobile hamburger
   drawer, place the menu inside `Scaffold.drawer`.
-- Keyboard navigation: arrow keys move focus between items, Home/End jump to the
-  first/last item, and Enter/Space activate. The menu is a scoped focus
-  traversal group and each item is now a single focus stop (the inner `ListTile`
-  is excluded from traversal), fixing erratic arrow-key focus.
+- Keyboard navigation: clicking/tapping a row now focuses it, then arrow keys
+  move focus between items, Home/End jump to the first/last item, and Enter/Space
+  activate. Every item (simple, expandable and collapsed rail) is a single focus
+  stop — its inner `ListTile`/`InkWell` is excluded from traversal and the row is
+  focused on pointer-down — which fixes arrow keys appearing to do nothing after
+  a click.
 - Accessibility/Semantics: optional `semanticsLabel` marks the menu as a labeled
   navigation region (`explicitChildNodes`); items now announce their badge (e.g.
   "Inbox, 12 notifications" / "Alerts, notification") via `accessibleLabel`.

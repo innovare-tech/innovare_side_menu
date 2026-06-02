@@ -54,6 +54,7 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
   }
 
   void _toggle() {
+    _focusNode.requestFocus();
     if (widget.style.enableHaptics) HapticFeedback.selectionClick();
     setState(() {
       isExpanded = !isExpanded;
@@ -109,73 +110,75 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
                         )
                       : null,
                 ),
-                child: ListTile(
-                  leading: widget.item.customLeading ??
-                      Container(
-                        padding: widget.style.itemIconPadding,
-                        decoration: widget.style.inactiveItemIconDecoration,
-                        child: Icon(
-                          widget.item.icon,
-                          color: widget.style.inactiveItemIconColor,
-                          size: widget.style.itemIconSize,
+                child: ExcludeFocus(
+                  child: ListTile(
+                    leading: widget.item.customLeading ??
+                        Container(
+                          padding: widget.style.itemIconPadding,
+                          decoration: widget.style.inactiveItemIconDecoration,
+                          child: Icon(
+                            widget.item.icon,
+                            color: widget.style.inactiveItemIconColor,
+                            size: widget.style.itemIconSize,
+                          ),
                         ),
+                    title: Text(
+                      widget.item.title,
+                      style: TextStyle(
+                        color: widget.style.inactiveItemTextColor,
+                        fontSize: widget.style.itemFontSize,
+                        fontWeight: widget.style.inactiveItemFontWeight,
                       ),
-                  title: Text(
-                    widget.item.title,
-                    style: TextStyle(
-                      color: widget.style.inactiveItemTextColor,
-                      fontSize: widget.style.itemFontSize,
-                      fontWeight: widget.style.inactiveItemFontWeight,
                     ),
-                  ),
-                  trailing: RotationTransition(
-                    turns: _rotationAnimation,
-                    child: Icon(
-                      widget.style.expandIcon ?? Icons.expand_more,
-                      color: widget.style.expandIconColor,
-                      size: widget.style.expandIconSize,
+                    trailing: RotationTransition(
+                      turns: _rotationAnimation,
+                      child: Icon(
+                        widget.style.expandIcon ?? Icons.expand_more,
+                        color: widget.style.expandIconColor,
+                        size: widget.style.expandIconSize,
+                      ),
                     ),
+                    onTap: _toggle,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          widget.style.itemBorderRadius ?? BorderRadius.zero,
+                    ),
+                    hoverColor: widget.style.itemHoverColor,
+                    contentPadding: widget.style.itemPadding,
+                    dense: true,
                   ),
-                  onTap: _toggle,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        widget.style.itemBorderRadius ?? BorderRadius.zero,
-                  ),
-                  hoverColor: widget.style.itemHoverColor,
-                  contentPadding: widget.style.itemPadding,
-                  dense: true,
                 ),
               ),
-          AnimatedSize(
-            duration: widget.style.expandAnimationDuration ??
-                Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: isExpanded
-                ? Container(
-                    margin: EdgeInsets.only(top: 2),
-                    padding: EdgeInsets.only(
-                      left: widget.style.subItemIndentation ?? 0,
-                    ),
-                    child: Column(
-                      children: widget.item.subItems!
-                          .where((subItem) => shouldShowItem(
-                              subItem, widget.permissionChecker))
-                          .map(
-                            (subItem) => SimpleMenuItem(
-                              item: subItem,
-                              style: widget.style,
-                              isSubItem: true,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  )
-                : SizedBox.shrink(),
+              AnimatedSize(
+                duration: widget.style.expandAnimationDuration ??
+                    Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: isExpanded
+                    ? Container(
+                        margin: EdgeInsets.only(top: 2),
+                        padding: EdgeInsets.only(
+                          left: widget.style.subItemIndentation ?? 0,
+                        ),
+                        child: Column(
+                          children: widget.item.subItems!
+                              .where((subItem) => shouldShowItem(
+                                  subItem, widget.permissionChecker))
+                              .map(
+                                (subItem) => SimpleMenuItem(
+                                  item: subItem,
+                                  style: widget.style,
+                                  isSubItem: true,
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      )
+                    : SizedBox.shrink(),
+              ),
+            ],
           ),
-          ],
         ),
       ),
-     ),
     );
   }
 }

@@ -59,6 +59,24 @@ void main() {
       expect(tapped, ['b']);
     });
 
+    testWidgets('tapping a row focuses it so arrow keys take over',
+        (tester) async {
+      final tapped = <String>[];
+      await tester.pumpWidget(buildApp(tapped));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Alpha')); // focuses + activates 'a'
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown); // -> b
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      // If the tap had not focused the row, arrowDown would have focused the
+      // first item and Enter would re-activate 'a' (giving ['a', 'a']).
+      expect(tapped, ['a', 'b']);
+    });
+
     testWidgets('End focuses last, Home focuses first', (tester) async {
       final tapped = <String>[];
       await tester.pumpWidget(buildApp(tapped));

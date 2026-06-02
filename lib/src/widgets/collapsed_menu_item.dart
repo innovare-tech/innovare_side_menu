@@ -48,8 +48,8 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.enter ||
           event.logicalKey == LogicalKeyboardKey.space) {
-        final hasSubItems = widget.item.subItems != null &&
-            widget.item.subItems!.isNotEmpty;
+        final hasSubItems =
+            widget.item.subItems != null && widget.item.subItems!.isNotEmpty;
         if (hasSubItems) {
           if (_isPopupOpen) {
             _removeOverlay();
@@ -124,6 +124,7 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
         widget.style.collapsedIconSize ?? widget.style.itemIconSize;
 
     void handleTap() {
+      _focusNode.requestFocus();
       if (widget.style.enableHaptics) HapticFeedback.selectionClick();
       if (hasSubItems) {
         if (_isPopupOpen) {
@@ -167,15 +168,17 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
                           BorderRadius.circular(4),
                     )
                   : null,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: widget.style.itemBorderRadius,
-                hoverColor: widget.style.itemHoverColor,
-                child: Padding(
-                  padding: widget.style.collapsedItemPadding ??
-                      EdgeInsets.symmetric(vertical: 12),
-                  child: Center(
-                    child: _buildIcon(iconColor, iconSize),
+              child: ExcludeFocus(
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: widget.style.itemBorderRadius,
+                  hoverColor: widget.style.itemHoverColor,
+                  child: Padding(
+                    padding: widget.style.collapsedItemPadding ??
+                        EdgeInsets.symmetric(vertical: 12),
+                    child: Center(
+                      child: _buildIcon(iconColor, iconSize),
+                    ),
                   ),
                 ),
               ),
