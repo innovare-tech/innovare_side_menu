@@ -63,6 +63,9 @@ class SimpleMenuItem extends StatelessWidget {
     final fontWeight =
         isActive ? style.activeItemFontWeight : style.inactiveItemFontWeight;
 
+    final baseTextStyle =
+        isSubItem ? style.subItemTextStyle : style.itemTextStyle;
+
     final enabled = item.enabled;
     final baseOnTap = enabled ? item.onTap : null;
     final onTap = baseOnTap == null
@@ -91,7 +94,7 @@ class SimpleMenuItem extends StatelessWidget {
           child: AnimatedDefaultTextStyle(
             duration: stateDuration,
             curve: Curves.easeOutCubic,
-            style: TextStyle(
+            style: (baseTextStyle ?? const TextStyle()).copyWith(
               color: textColor,
               fontSize: fontSize,
               fontWeight: fontWeight,
@@ -107,6 +110,7 @@ class SimpleMenuItem extends StatelessWidget {
         hoverColor: style.itemHoverColor,
         contentPadding: padding,
         dense: true,
+        visualDensity: style.visualDensity,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius ?? BorderRadius.zero,
         ),

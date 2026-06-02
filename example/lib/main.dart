@@ -232,28 +232,73 @@ class _ExampleScreenState extends State<ExampleScreen> {
       autoCollapseBelowWidth: _responsive ? 700 : null,
     );
     final darkBg = _needsDarkBackground();
+    final isGlass = _selectedTheme == ThemeOption.glassmorphism;
 
     return Scaffold(
       backgroundColor: darkBg ? const Color(0xFF0a0a0a) : null,
-      body: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: InnovareSideMenu(
-              style: style,
-              mode: _mode,
-              modeTransitionDuration: const Duration(milliseconds: 300),
-              semanticsLabel: 'Main navigation',
-              isLoading: _isLoading,
-              permissionChecker: (permission) {
-                if (permission == 'admin') return _isAdmin;
-                return true;
-              },
-              header: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Container(
+      // A vivid gradient sits behind the rail so the glassmorphism theme's
+      // BackdropFilter has something colorful to frost.
+      body: DecoratedBox(
+        decoration: isGlass
+            ? const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF0F2027),
+                    Color(0xFF2C5364),
+                    Color(0xFF6D28D9),
+                  ],
+                ),
+              )
+            : const BoxDecoration(),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: InnovareSideMenu(
+                style: style,
+                mode: _mode,
+                modeTransitionDuration: const Duration(milliseconds: 300),
+                semanticsLabel: 'Main navigation',
+                isLoading: _isLoading,
+                permissionChecker: (permission) {
+                  if (permission == 'admin') return _isAdmin;
+                  return true;
+                },
+                header: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.hexagon_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Innovare',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: darkBg ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                collapsedHeader: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Center(
+                    child: Container(
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
@@ -266,41 +311,44 @@ class _ExampleScreenState extends State<ExampleScreen> {
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Innovare',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: darkBg ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              collapsedHeader: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Center(
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.hexagon_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
                   ),
                 ),
-              ),
-              footer: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    CircleAvatar(
+                footer: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.blue.shade100,
+                        child: Text(
+                          'J',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'John Doe',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: darkBg
+                                ? Colors.white.withValues(alpha: 0.8)
+                                : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                collapsedFooter: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Center(
+                    child: CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.blue.shade100,
                       child: Text(
@@ -311,103 +359,74 @@ class _ExampleScreenState extends State<ExampleScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                  ),
+                ),
+                sections: _buildSections(),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildToolbar(),
+                    const SizedBox(height: 24),
+                    Text(
+                      _contentTitle,
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Selected item: $_activeItemId',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
                     Expanded(
-                      child: Text(
-                        'John Doe',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: darkBg
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.black87,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.touch_app_outlined,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Tap a menu item to navigate',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              collapsedFooter: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.blue.shade100,
-                    child: Text(
-                      'J',
-                      style: TextStyle(
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              sections: _buildSections(),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildToolbar(),
-                  const SizedBox(height: 24),
-                  Text(
-                    _contentTitle,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selected item: $_activeItemId',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.touch_app_outlined,
-                              size: 48,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Tap a menu item to navigate',
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

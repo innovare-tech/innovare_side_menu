@@ -552,6 +552,9 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
   static InnovareSideMenuStyle glassmorphism() {
     return InnovareSideMenuStyle(
       width: 280,
+      // Real frosted glass: blur whatever is rendered behind the rail. Best
+      // over a colorful gradient or image background.
+      backdropBlur: 20,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [

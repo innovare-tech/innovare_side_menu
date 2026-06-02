@@ -221,6 +221,24 @@ class InnovareSideMenuStyle {
   /// `false`). Defaults to `0.38` (Material's disabled opacity).
   final double disabledOpacity;
 
+  /// Gaussian blur sigma applied behind the menu for a frosted-glass effect.
+  /// Pair it with a translucent [decoration] color so the blurred backdrop
+  /// shows through. `null` (default) disables the blur. The blur is clipped to
+  /// [borderRadius] (falling back to the decoration's radius).
+  final double? backdropBlur;
+
+  /// Visual density forwarded to each item's `ListTile` to tune vertical
+  /// spacing (e.g. `VisualDensity.compact`). `null` uses the ambient density.
+  final VisualDensity? visualDensity;
+
+  /// Base text style for item labels. The active/inactive color, [itemFontSize]
+  /// and font weight are layered on top, so use this to set family, letter
+  /// spacing, height, etc. `null` (default) uses a plain style.
+  final TextStyle? itemTextStyle;
+
+  /// Base text style for sub-item labels. See [itemTextStyle].
+  final TextStyle? subItemTextStyle;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -294,6 +312,10 @@ class InnovareSideMenuStyle {
     this.expandOnHover = false,
     this.autoCollapseBelowWidth,
     this.disabledOpacity = 0.38,
+    this.backdropBlur,
+    this.visualDensity,
+    this.itemTextStyle,
+    this.subItemTextStyle,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -366,6 +388,10 @@ class InnovareSideMenuStyle {
     bool? expandOnHover,
     double? autoCollapseBelowWidth,
     double? disabledOpacity,
+    double? backdropBlur,
+    VisualDensity? visualDensity,
+    TextStyle? itemTextStyle,
+    TextStyle? subItemTextStyle,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -455,6 +481,10 @@ class InnovareSideMenuStyle {
       autoCollapseBelowWidth:
           autoCollapseBelowWidth ?? this.autoCollapseBelowWidth,
       disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+      backdropBlur: backdropBlur ?? this.backdropBlur,
+      visualDensity: visualDensity ?? this.visualDensity,
+      itemTextStyle: itemTextStyle ?? this.itemTextStyle,
+      subItemTextStyle: subItemTextStyle ?? this.subItemTextStyle,
     );
   }
 }

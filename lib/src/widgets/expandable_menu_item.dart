@@ -91,7 +91,8 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
                     ),
                 title: Text(
                   widget.item.title,
-                  style: TextStyle(
+                  style: (widget.style.itemTextStyle ?? const TextStyle())
+                      .copyWith(
                     color: widget.style.inactiveItemTextColor,
                     fontSize: widget.style.itemFontSize,
                     fontWeight: widget.style.inactiveItemFontWeight,
@@ -113,6 +114,7 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
                 hoverColor: widget.style.itemHoverColor,
                 contentPadding: widget.style.itemPadding,
                 dense: true,
+                visualDensity: widget.style.visualDensity,
               ),
             ),
             AnimatedSize(

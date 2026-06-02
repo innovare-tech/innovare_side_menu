@@ -46,6 +46,11 @@
   collapsible sections (`collapseSection` / `expandSection` / `toggleSection`)
   from code — ideal for a hamburger button. When provided it overrides `mode` and
   owns the section open/closed state; seed the initial state via its constructor.
+- Visual expression: `backdropBlur` renders the rail as real frosted glass
+  (a `BackdropFilter` clipped to its corners) over whatever is behind it — the
+  built-in `glassmorphism()` theme now uses it; `visualDensity` tunes item
+  spacing; and `itemTextStyle` / `subItemTextStyle` set a full base label
+  typography (active/inactive color, size and weight still layer on top).
 
 ## 1.0.1
 

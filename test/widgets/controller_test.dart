@@ -52,7 +52,8 @@ void main() {
       tester.getSize(find.byType(AnimatedAlign)).height;
 
   group('InnovareSideMenuController', () {
-    testWidgets('collapse() and expand() change the rail width', (tester) async {
+    testWidgets('collapse() and expand() change the rail width',
+        (tester) async {
       final controller = InnovareSideMenuController();
       addTearDown(controller.dispose);
 
@@ -62,12 +63,14 @@ void main() {
 
       controller.collapse();
       await tester.pumpAndSettle();
-      final collapsedWidth = tester.getSize(find.byType(InnovareSideMenu)).width;
+      final collapsedWidth =
+          tester.getSize(find.byType(InnovareSideMenu)).width;
       expect(collapsedWidth, lessThan(expandedWidth));
 
       controller.expand();
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.byType(InnovareSideMenu)).width, expandedWidth);
+      expect(
+          tester.getSize(find.byType(InnovareSideMenu)).width, expandedWidth);
     });
 
     testWidgets('toggleCollapsed() flips the state', (tester) async {

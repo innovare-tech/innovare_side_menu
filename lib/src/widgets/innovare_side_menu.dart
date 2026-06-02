@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -380,6 +382,21 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
     );
 
     Widget result = menu;
+    // Frosted-glass: blur whatever is behind the rail, clipped to its corners.
+    final blur = style.backdropBlur;
+    if (blur != null && blur > 0) {
+      final decorationRadius = style.decoration?.borderRadius;
+      final radius = style.borderRadius ??
+          (decorationRadius is BorderRadius ? decorationRadius : null) ??
+          BorderRadius.zero;
+      result = ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: result,
+        ),
+      );
+    }
     if (hoverExpand) {
       result = MouseRegion(
         onEnter: (_) {
