@@ -662,7 +662,10 @@ class _Appear extends StatefulWidget {
 class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
   static const _maxStaggerDelay = Duration(milliseconds: 360);
 
-  late final AnimationController _controller = AnimationController(vsync: this);
+  // Created lazily only when we actually animate. Staying null under
+  // reduce-motion (or when disabled) avoids instantiating a Ticker we never
+  // use — and, crucially, avoids a TickerMode lookup from dispose().
+  AnimationController? _controller;
   Animation<double> _animation = const AlwaysStoppedAnimation<double>(1);
   bool _started = false;
 
@@ -682,20 +685,21 @@ class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
     // the delay, then eases in) so we never schedule a raw timer — keeps the
     // widget test-friendly (no pending timers) while still cascading.
     final total = delay + widget.duration;
-    _controller.duration = total;
+    final controller = AnimationController(vsync: this, duration: total);
+    _controller = controller;
     final startFraction = total.inMicroseconds == 0
         ? 0.0
         : delay.inMicroseconds / total.inMicroseconds;
     _animation = CurvedAnimation(
-      parent: _controller,
+      parent: controller,
       curve: Interval(startFraction, 1, curve: Curves.easeOutCubic),
     );
-    _controller.forward();
+    controller.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 

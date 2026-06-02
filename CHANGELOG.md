@@ -51,6 +51,14 @@
   built-in `glassmorphism()` theme now uses it; `visualDensity` tunes item
   spacing; and `itemTextStyle` / `subItemTextStyle` set a full base label
   typography (active/inactive color, size and weight still layer on top).
+- Golden tests: visual-regression snapshots for the expanded rail (active item +
+  count/dot badges), the collapsed rail and the loading skeleton, under
+  `test/golden/`. Regenerate with `flutter test --update-goldens test/golden`.
+- Fixed a crash when the menu is disposed while the OS "reduce motion" /
+  "disable animations" setting is enabled: the per-item appear animation no
+  longer lazily creates its `AnimationController` (and `Ticker`) from
+  `dispose()`, which performed an unsafe `TickerMode` lookup on a deactivated
+  element.
 
 ## 1.0.1
 
