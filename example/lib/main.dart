@@ -54,6 +54,9 @@ class _ExampleScreenState extends State<ExampleScreen> {
   bool _isAdmin = true;
   bool _innovareDark = false;
   String _contentTitle = 'Dashboard';
+  bool _collapsibleSections = false;
+  bool _expandOnHover = false;
+  bool _responsive = false;
 
   InnovareSideMenuStyle _getStyle(BuildContext context) {
     switch (_selectedTheme) {
@@ -119,6 +122,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
       ),
       InnovareSideMenuSection(
         title: 'CONTENT',
+        collapsible: _collapsibleSections,
         items: [
           InnovareSideMenuItem(
             id: 'products',
@@ -160,6 +164,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
       ),
       InnovareSideMenuSection(
         title: 'ADMIN',
+        collapsible: _collapsibleSections,
         items: [
           InnovareSideMenuItem(
             id: 'users',
@@ -214,7 +219,10 @@ class _ExampleScreenState extends State<ExampleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final style = _getStyle(context);
+    final style = _getStyle(context).copyWith(
+      expandOnHover: _expandOnHover,
+      autoCollapseBelowWidth: _responsive ? 700 : null,
+    );
     final darkBg = _needsDarkBackground();
 
     return Scaffold(
@@ -432,6 +440,21 @@ class _ExampleScreenState extends State<ExampleScreen> {
           label: const Text('Admin Mode'),
           selected: _isAdmin,
           onSelected: (value) => setState(() => _isAdmin = value),
+        ),
+        FilterChip(
+          label: const Text('Collapsible sections'),
+          selected: _collapsibleSections,
+          onSelected: (value) => setState(() => _collapsibleSections = value),
+        ),
+        FilterChip(
+          label: const Text('Hover expand'),
+          selected: _expandOnHover,
+          onSelected: (value) => setState(() => _expandOnHover = value),
+        ),
+        FilterChip(
+          label: const Text('Responsive (<700px)'),
+          selected: _responsive,
+          onSelected: (value) => setState(() => _responsive = value),
         ),
         if (_selectedTheme.preset != null)
           FilterChip(
