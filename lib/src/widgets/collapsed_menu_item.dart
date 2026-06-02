@@ -140,7 +140,7 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
         (!hasSubItems && widget.item.onTap == null) ? null : handleTap;
 
     return Semantics(
-      label: widget.item.semanticLabel ?? widget.item.title,
+      label: widget.item.accessibleLabel,
       button: true,
       selected: isActive,
       child: Focus(

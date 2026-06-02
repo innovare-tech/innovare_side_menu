@@ -75,6 +75,10 @@ class InnovareSideMenu extends StatefulWidget {
   /// Defaults to `Duration(milliseconds: 300)`.
   final Duration? modeTransitionDuration;
 
+  /// Accessibility label announced for the navigation region as a whole, e.g.
+  /// "Main navigation". When `null` (default) no region label is added.
+  final String? semanticsLabel;
+
   /// Creates an [InnovareSideMenu].
   ///
   /// The [sections] parameter is required.
@@ -91,6 +95,7 @@ class InnovareSideMenu extends StatefulWidget {
     this.collapsedFooter,
     this.mode = InnovareSideMenuMode.expanded,
     this.modeTransitionDuration,
+    this.semanticsLabel,
   }) : style = style ?? const InnovareSideMenuStyle();
 
   @override
@@ -367,7 +372,7 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
 
     // Scope focus traversal to the menu and add Home/End shortcuts. Arrow keys
     // already move focus directionally via the app's default shortcuts.
-    return FocusScope(
+    final Widget navigation = FocusScope(
       node: _menuScope,
       child: FocusTraversalGroup(
         policy: ReadingOrderTraversalPolicy(),
@@ -381,6 +386,15 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
           child: result,
         ),
       ),
+    );
+
+    final semanticsLabel = widget.semanticsLabel;
+    if (semanticsLabel == null) return navigation;
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      label: semanticsLabel,
+      child: navigation,
     );
   }
 

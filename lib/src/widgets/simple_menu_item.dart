@@ -126,7 +126,7 @@ class SimpleMenuItem extends StatelessWidget {
     }
 
     return Semantics(
-      label: item.semanticLabel ?? item.title,
+      label: item.accessibleLabel,
       button: true,
       selected: item.isActive,
       child: _FocusableItem(

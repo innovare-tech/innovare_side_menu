@@ -52,6 +52,14 @@ class InnovareSideMenuItem {
   /// if not specified.
   final String? semanticLabel;
 
+  /// The label announced to screen readers: [semanticLabel] (or [title] as a
+  /// fallback) plus a short badge description when a [badge] is present.
+  String get accessibleLabel {
+    final base = semanticLabel ?? title;
+    final badgeDescription = badge?.semanticsDescription;
+    return badgeDescription == null ? base : '$base, $badgeDescription';
+  }
+
   /// Creates a menu item.
   ///
   /// The [id], [icon], and [title] parameters are required.

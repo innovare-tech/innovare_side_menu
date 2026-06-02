@@ -83,7 +83,7 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: widget.item.semanticLabel ?? widget.item.title,
+      label: widget.item.accessibleLabel,
       button: true,
       expanded: isExpanded,
       child: Focus(

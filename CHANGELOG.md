@@ -35,6 +35,9 @@
   first/last item, and Enter/Space activate. The menu is a scoped focus
   traversal group and each item is now a single focus stop (the inner `ListTile`
   is excluded from traversal), fixing erratic arrow-key focus.
+- Accessibility/Semantics: optional `semanticsLabel` marks the menu as a labeled
+  navigation region (`explicitChildNodes`); items now announce their badge (e.g.
+  "Inbox, 12 notifications" / "Alerts, notification") via `accessibleLabel`.
 
 ## 1.0.1
 
