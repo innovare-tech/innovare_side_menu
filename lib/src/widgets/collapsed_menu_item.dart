@@ -110,15 +110,21 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
     final iconSize =
         widget.style.collapsedIconSize ?? widget.style.itemIconSize;
 
-    final onTap = hasSubItems
-        ? () {
-            if (_isPopupOpen) {
-              _removeOverlay();
-            } else {
-              _showSubItemsPopup();
-            }
-          }
-        : widget.item.onTap;
+    void handleTap() {
+      if (widget.style.enableHaptics) HapticFeedback.selectionClick();
+      if (hasSubItems) {
+        if (_isPopupOpen) {
+          _removeOverlay();
+        } else {
+          _showSubItemsPopup();
+        }
+      } else {
+        widget.item.onTap?.call();
+      }
+    }
+
+    final onTap =
+        (!hasSubItems && widget.item.onTap == null) ? null : handleTap;
 
     return Semantics(
       label: widget.item.semanticLabel ?? widget.item.title,

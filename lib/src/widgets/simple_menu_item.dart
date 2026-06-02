@@ -68,6 +68,14 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemFontWeight
         : style.inactiveItemFontWeight;
 
+    final baseOnTap = item.onTap;
+    final onTap = baseOnTap == null
+        ? null
+        : () {
+            if (style.enableHaptics) HapticFeedback.selectionClick();
+            baseOnTap();
+          };
+
     Widget tile = AnimatedContainer(
       duration: stateDuration,
       curve: Curves.easeOutCubic,
@@ -99,7 +107,7 @@ class SimpleMenuItem extends StatelessWidget {
           ),
         ),
         trailing: isCollapsed ? null : item.trailing,
-        onTap: item.onTap,
+        onTap: onTap,
         hoverColor: style.itemHoverColor,
         contentPadding: padding,
         dense: true,
@@ -122,9 +130,14 @@ class SimpleMenuItem extends StatelessWidget {
       button: true,
       selected: item.isActive,
       child: _FocusableItem(
-        onTap: item.onTap,
+        onTap: onTap,
         style: style,
-        child: tile,
+        child: _InteractiveScale(
+          enabled: onTap != null,
+          pressedScale: style.pressedScale,
+          hoverScale: style.hoverScale,
+          child: tile,
+        ),
       ),
     );
   }
@@ -223,6 +236,86 @@ class _FocusableItemState extends State<_FocusableItem> {
             child: widget.child,
           );
         },
+      ),
+    );
+  }
+}
+
+/// Adds a tactile press (and optional hover) scale around an item.
+///
+/// Uses a raw [Listener] so it never competes with the tile's own tap gesture,
+/// and cancels the press if the pointer moves enough to start a scroll. Honors
+/// `MediaQuery.disableAnimations`.
+class _InteractiveScale extends StatefulWidget {
+  final Widget child;
+  final bool enabled;
+  final double pressedScale;
+  final double hoverScale;
+
+  const _InteractiveScale({
+    required this.child,
+    required this.enabled,
+    required this.pressedScale,
+    required this.hoverScale,
+  });
+
+  @override
+  State<_InteractiveScale> createState() => _InteractiveScaleState();
+}
+
+class _InteractiveScaleState extends State<_InteractiveScale> {
+  bool _pressed = false;
+  bool _hovered = false;
+  Offset? _downPosition;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    var scale = 1.0;
+    if (widget.enabled && !reduceMotion) {
+      if (_pressed) {
+        scale = widget.pressedScale;
+      } else if (_hovered) {
+        scale = widget.hoverScale;
+      }
+    }
+
+    final scaled = AnimatedScale(
+      scale: scale,
+      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: widget.child,
+    );
+
+    if (!widget.enabled) return scaled;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() {
+        _hovered = false;
+        _pressed = false;
+      }),
+      child: Listener(
+        behavior: HitTestBehavior.deferToChild,
+        onPointerDown: (event) {
+          _downPosition = event.position;
+          _setPressed(true);
+        },
+        onPointerMove: (event) {
+          if (_pressed &&
+              _downPosition != null &&
+              (event.position - _downPosition!).distance > 12) {
+            _setPressed(false);
+          }
+        },
+        onPointerUp: (_) => _setPressed(false),
+        onPointerCancel: (_) => _setPressed(false),
+        child: scaled,
       ),
     );
   }

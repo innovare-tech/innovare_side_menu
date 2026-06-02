@@ -54,6 +54,7 @@ class _ExpandableMenuItemState extends State<ExpandableMenuItem>
   }
 
   void _toggle() {
+    if (widget.style.enableHaptics) HapticFeedback.selectionClick();
     setState(() {
       isExpanded = !isExpanded;
       if (isExpanded) {

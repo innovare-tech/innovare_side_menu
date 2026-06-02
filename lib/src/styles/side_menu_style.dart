@@ -194,6 +194,17 @@ class InnovareSideMenuStyle {
   /// Defaults to 45ms.
   final Duration appearStaggerInterval;
 
+  /// Whether a selection haptic fires when an item is tapped. Defaults to `true`.
+  final bool enableHaptics;
+
+  /// Scale applied while an item is pressed (tap-down). Defaults to `0.97`;
+  /// set to `1.0` to disable the press effect.
+  final double pressedScale;
+
+  /// Scale applied while an item is hovered on desktop/web. Defaults to `1.0`
+  /// (no scale — relies on the hover color).
+  final double hoverScale;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -260,6 +271,9 @@ class InnovareSideMenuStyle {
     this.animateOnAppear = true,
     this.appearAnimationDuration = const Duration(milliseconds: 350),
     this.appearStaggerInterval = const Duration(milliseconds: 45),
+    this.enableHaptics = true,
+    this.pressedScale = 0.97,
+    this.hoverScale = 1.0,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -325,6 +339,9 @@ class InnovareSideMenuStyle {
     bool? animateOnAppear,
     Duration? appearAnimationDuration,
     Duration? appearStaggerInterval,
+    bool? enableHaptics,
+    double? pressedScale,
+    double? hoverScale,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -413,6 +430,9 @@ class InnovareSideMenuStyle {
           appearAnimationDuration ?? this.appearAnimationDuration,
       appearStaggerInterval:
           appearStaggerInterval ?? this.appearStaggerInterval,
+      enableHaptics: enableHaptics ?? this.enableHaptics,
+      pressedScale: pressedScale ?? this.pressedScale,
+      hoverScale: hoverScale ?? this.hoverScale,
     );
   }
 }

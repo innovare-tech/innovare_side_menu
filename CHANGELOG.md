@@ -12,6 +12,10 @@
   `InnovareSideMenuStyle` fields `stateAnimationDuration`, `animateOnAppear`,
   `appearAnimationDuration` and `appearStaggerInterval`. `fromInnovare` maps
   these from the client's motion personality.
+- Tactile feedback: items respond to touch with a subtle press scale
+  (`pressedScale`, default 0.97), an optional hover scale (`hoverScale`) and a
+  selection haptic on tap (`enableHaptics`, default true) — including the
+  collapsed rail and expandable rows.
 
 ## 1.0.1
 

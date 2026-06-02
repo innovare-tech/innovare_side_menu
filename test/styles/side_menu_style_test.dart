@@ -13,6 +13,9 @@ void main() {
       expect(style.badgeSize, 8);
       expect(style.animateOnAppear, isTrue);
       expect(style.stateAnimationDuration, const Duration(milliseconds: 200));
+      expect(style.enableHaptics, isTrue);
+      expect(style.pressedScale, 0.97);
+      expect(style.hoverScale, 1.0);
     });
 
     test('copyWith changes width and preserves all other fields', () {
