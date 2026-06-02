@@ -1,3 +1,12 @@
+## 1.1.0
+
+- Add `InnovareSideMenuThemes.fromInnovare(InnovareDesignTheme)` — derives the
+  menu style directly from the [Innovare Design System](https://github.com/innovare-tech/innovare_design)
+  tokens (brand color, corner shape, type scale, depth and motion personality),
+  so the menu re-skins per client from a single source of truth.
+- Add `innovare_design` as a dependency (used by the new factory).
+- Raise minimum SDK to Dart 3.6 / Flutter 3.27 (required by `innovare_design`).
+
 ## 1.0.1
 
 - Fix layout overflow errors during expanded/collapsed mode transitions

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:innovare_design/innovare_design.dart';
 import 'package:innovare_side_menu/innovare_side_menu.dart';
 
 void main() {
@@ -94,6 +95,47 @@ void main() {
       expect(style.width, greaterThan(0));
       expect(style.decoration, isNotNull);
       expect(style.decoration!.gradient, isNotNull);
+    });
+  });
+
+  group('InnovareSideMenuThemes.fromInnovare', () {
+    test('maps brand, status and motion tokens from the design theme', () {
+      final theme = InnvPresets.aurora();
+      final style = InnovareSideMenuThemes.fromInnovare(theme);
+
+      expect(style.decoration!.color, theme.colors.surfaceContainer);
+      expect(style.activeItemDecoration!.color, theme.colors.brandContainer);
+      expect(style.activeItemTextColor, theme.colors.onBrandContainer);
+      expect(style.activeItemIconColor, theme.colors.brand);
+      expect(style.badgeColor, theme.colors.danger.content);
+      expect(style.expandAnimationDuration, theme.motion.micro);
+    });
+
+    test('honors the corner shape (pill preset uses chip radius on items)', () {
+      final theme = InnvPresets.vibe();
+      final style = InnovareSideMenuThemes.fromInnovare(theme);
+
+      expect(style.itemBorderRadius, theme.shape.chipRadius);
+    });
+
+    test('honors depth: bordered preset draws a border and no shadow', () {
+      final style = InnovareSideMenuThemes.fromInnovare(InnvPresets.slate());
+
+      expect(style.decoration!.border, isNotNull);
+      expect(style.decoration!.boxShadow, isEmpty);
+    });
+
+    test('honors depth: soft preset casts a shadow', () {
+      final style = InnovareSideMenuThemes.fromInnovare(InnvPresets.aurora());
+
+      expect(style.decoration!.boxShadow, isNotEmpty);
+    });
+
+    test('resolves a dark scheme without exception', () {
+      final dark = InnvPresets.aurora(brightness: Brightness.dark);
+      final style = InnovareSideMenuThemes.fromInnovare(dark);
+
+      expect(style.decoration!.color, dark.colors.surfaceContainer);
     });
   });
 }

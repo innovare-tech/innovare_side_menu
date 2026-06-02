@@ -2,21 +2,21 @@
 
 [![pub package](https://img.shields.io/pub/v/innovare_side_menu.svg)](https://pub.dev/packages/innovare_side_menu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Flutter](https://img.shields.io/badge/Flutter-%E2%89%A53.10-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-%E2%89%A53.27-02569B?logo=flutter)](https://flutter.dev)
 
-A beautiful, highly customizable side menu widget for Flutter. Supports expanded and collapsed (rail) modes, hierarchical items, badges, permission-based filtering, accessibility, and 5 built-in themes — all with zero external dependencies.
+A beautiful, highly customizable side menu widget for Flutter. Supports expanded and collapsed (rail) modes, hierarchical items, badges, permission-based filtering, accessibility, and ready-made theme factories — including first-class integration with the [Innovare Design System](https://github.com/innovare-tech/innovare_design).
 
 ## Features
 
 - **Declarative API** — Define sections and items with simple data models
 - **Expanded & Collapsed modes** — Animated transition between full menu and icon-only rail
 - **Hierarchical items** — Expandable items with nested sub-items
-- **5 built-in themes** — `darkDefault`, `lightDefault`, `minimal`, `glassmorphism`, and `fromTheme`
+- **Theme factories** — `darkDefault`, `lightDefault`, `minimal`, `glassmorphism`, `fromTheme`, plus `fromInnovare` (derives the style from the [Innovare Design System](https://github.com/innovare-tech/innovare_design) tokens)
 - **Badge support** — Count, dot, and fully custom badge widgets
 - **Permission-based filtering** — Show/hide items based on user permissions
 - **Full accessibility** — `Semantics` labels, keyboard navigation (Tab/Enter/Escape), focus indicators
 - **Header & Footer** — Custom widgets for both expanded and collapsed modes
-- **Zero external dependencies** — Only depends on Flutter SDK
+- **Design-system ready** — First-class `fromInnovare` integration with the Innovare Design System
 
 ## Getting Started
 
@@ -24,7 +24,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  innovare_side_menu: ^1.0.0
+  innovare_side_menu: ^1.1.0
 ```
 
 Then import it:
@@ -177,6 +177,21 @@ InnovareSideMenu(
 )
 ```
 
+### From the Innovare Design System
+
+If your app uses the [Innovare Design System](https://github.com/innovare-tech/innovare_design), derive the menu style straight from its tokens so the menu always matches the active client brand — color, corner shape, type scale and motion personality:
+
+```dart
+import 'package:innovare_design/innovare_design.dart';
+
+InnovareSideMenu(
+  style: InnovareSideMenuThemes.fromInnovare(context.innv),
+  sections: [ /* ... */ ],
+)
+```
+
+`fromInnovare` honors light/dark (via the scheme's `Brightness`) and the chosen `InnvDepthStyle` — a bordered preset draws a hairline outline, a soft preset casts a layered shadow.
+
 ### Expandable Items
 
 Items with `subItems` automatically render as expandable. In collapsed mode, sub-items appear in a popup overlay.
@@ -239,11 +254,12 @@ Comprehensive styling class with 50+ properties covering container, header/foote
 
 ### `InnovareSideMenuThemes`
 
-Extension on `InnovareSideMenuStyle` with 5 factory constructors:
+Extension on `InnovareSideMenuStyle` with these factory constructors:
 
 - `darkDefault()` — Dark gradient with blue accents
 - `lightDefault()` — Light background with blue active items
 - `fromTheme(ThemeData)` — Adapts to any Flutter `ThemeData`
+- `fromInnovare(InnovareDesignTheme)` — Derives the style from Innovare Design System tokens (brand, shape, type, depth, motion)
 - `minimal()` — Clean, borderless design with left-border active indicator
 - `glassmorphism()` — Translucent glass effect with rounded corners
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:innovare_design/innovare_design.dart';
 import 'package:innovare_side_menu/innovare_side_menu.dart';
 
 void main() {
@@ -24,14 +25,19 @@ class ExampleApp extends StatelessWidget {
 }
 
 enum ThemeOption {
-  darkDefault('Dark Default'),
-  lightDefault('Light Default'),
-  fromTheme('From ThemeData'),
-  minimal('Minimal'),
-  glassmorphism('Glassmorphism');
+  innovareAurora('Innovare · Aurora', InnvPreset.aurora),
+  innovareVibe('Innovare · Vibe', InnvPreset.vibe),
+  innovareSlate('Innovare · Slate', InnvPreset.slate),
+  innovareLumen('Innovare · Lumen', InnvPreset.lumen),
+  darkDefault('Dark Default', null),
+  lightDefault('Light Default', null),
+  fromTheme('From ThemeData', null),
+  minimal('Minimal', null),
+  glassmorphism('Glassmorphism', null);
 
   final String label;
-  const ThemeOption(this.label);
+  final InnvPreset? preset;
+  const ThemeOption(this.label, this.preset);
 }
 
 class ExampleScreen extends StatefulWidget {
@@ -42,14 +48,25 @@ class ExampleScreen extends StatefulWidget {
 }
 
 class _ExampleScreenState extends State<ExampleScreen> {
-  ThemeOption _selectedTheme = ThemeOption.darkDefault;
+  ThemeOption _selectedTheme = ThemeOption.innovareAurora;
   InnovareSideMenuMode _mode = InnovareSideMenuMode.expanded;
   String _activeItemId = 'dashboard';
   bool _isAdmin = true;
+  bool _innovareDark = false;
   String _contentTitle = 'Dashboard';
 
   InnovareSideMenuStyle _getStyle(BuildContext context) {
     switch (_selectedTheme) {
+      case ThemeOption.innovareAurora:
+      case ThemeOption.innovareVibe:
+      case ThemeOption.innovareSlate:
+      case ThemeOption.innovareLumen:
+        return InnovareSideMenuThemes.fromInnovare(
+          InnvPresets.resolve(
+            _selectedTheme.preset!,
+            _innovareDark ? Brightness.dark : Brightness.light,
+          ),
+        );
       case ThemeOption.darkDefault:
         return InnovareSideMenuThemes.darkDefault();
       case ThemeOption.lightDefault:
@@ -190,6 +207,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
   }
 
   bool _needsDarkBackground() {
+    if (_selectedTheme.preset != null) return _innovareDark;
     return _selectedTheme == ThemeOption.darkDefault ||
         _selectedTheme == ThemeOption.glassmorphism;
   }
@@ -415,6 +433,12 @@ class _ExampleScreenState extends State<ExampleScreen> {
           selected: _isAdmin,
           onSelected: (value) => setState(() => _isAdmin = value),
         ),
+        if (_selectedTheme.preset != null)
+          FilterChip(
+            label: const Text('Dark'),
+            selected: _innovareDark,
+            onSelected: (value) => setState(() => _innovareDark = value),
+          ),
       ],
     );
   }
