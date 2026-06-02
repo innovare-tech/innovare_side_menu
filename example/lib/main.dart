@@ -57,6 +57,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
   bool _collapsibleSections = false;
   bool _expandOnHover = false;
   bool _responsive = false;
+  bool _isLoading = false;
 
   InnovareSideMenuStyle _getStyle(BuildContext context) {
     switch (_selectedTheme) {
@@ -117,6 +118,13 @@ class _ExampleScreenState extends State<ExampleScreen> {
             badge: const InnovareSideMenuBadge.dot(),
             isActive: _activeItemId == 'calendar',
             onTap: () => _onItemTap('calendar', 'Calendar'),
+          ),
+          InnovareSideMenuItem(
+            id: 'reports',
+            icon: Icons.bar_chart_outlined,
+            title: 'Reports (soon)',
+            enabled: false,
+            onTap: () => _onItemTap('reports', 'Reports'),
           ),
         ],
       ),
@@ -235,6 +243,8 @@ class _ExampleScreenState extends State<ExampleScreen> {
               style: style,
               mode: _mode,
               modeTransitionDuration: const Duration(milliseconds: 300),
+              semanticsLabel: 'Main navigation',
+              isLoading: _isLoading,
               permissionChecker: (permission) {
                 if (permission == 'admin') return _isAdmin;
                 return true;
@@ -455,6 +465,11 @@ class _ExampleScreenState extends State<ExampleScreen> {
           label: const Text('Responsive (<700px)'),
           selected: _responsive,
           onSelected: (value) => setState(() => _responsive = value),
+        ),
+        FilterChip(
+          label: const Text('Loading'),
+          selected: _isLoading,
+          onSelected: (value) => setState(() => _isLoading = value),
         ),
         if (_selectedTheme.preset != null)
           FilterChip(
