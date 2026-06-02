@@ -11,9 +11,23 @@ class InnovareSideMenuSection {
   /// The list of menu items in this section.
   final List<InnovareSideMenuItem> items;
 
+  /// Whether the section can be collapsed/expanded by tapping its header.
+  ///
+  /// Only applies in expanded mode and requires a [title]. Defaults to `false`.
+  final bool collapsible;
+
+  /// When [collapsible], whether the section starts expanded. Defaults to
+  /// `true`.
+  final bool initiallyExpanded;
+
   /// Creates a menu section.
   ///
   /// The [items] parameter is required. The [title] is optional and only
   /// displayed in expanded mode.
-  const InnovareSideMenuSection({this.title, required this.items});
+  const InnovareSideMenuSection({
+    this.title,
+    required this.items,
+    this.collapsible = false,
+    this.initiallyExpanded = true,
+  });
 }

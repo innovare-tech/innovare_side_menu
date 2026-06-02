@@ -22,6 +22,9 @@
 - Auto scroll-to-active: the menu reveals the active item on mount and whenever
   it changes (`autoScrollToActive`, default true). Items keep stable keys so the
   appearance animation never re-runs on selection changes.
+- Collapsible sections: set `collapsible: true` (and optional `initiallyExpanded`)
+  on an `InnovareSideMenuSection` to render a tappable header with a rotating
+  chevron that rolls its items in/out (expanded mode). Reduce-motion aware.
 
 ## 1.0.1
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/side_menu_item.dart';
 import '../models/side_menu_mode.dart';
@@ -107,6 +108,21 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
 
   String? _scrolledToActiveId;
 
+  /// Titles of sections currently collapsed (collapsible sections only).
+  final Set<String> _collapsedSections = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (final section in widget.sections) {
+      if (section.collapsible &&
+          section.title != null &&
+          !section.initiallyExpanded) {
+        _collapsedSections.add(section.title!);
+      }
+    }
+  }
+
   bool get _isCollapsed => widget.mode == InnovareSideMenuMode.collapsed;
 
   Duration get _transitionDuration =>
@@ -119,6 +135,15 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
   }
 
   GlobalKey _keyFor(String id) => _itemKeys.putIfAbsent(id, () => GlobalKey());
+
+  void _toggleSection(String title) {
+    if (widget.style.enableHaptics) HapticFeedback.selectionClick();
+    setState(() {
+      if (!_collapsedSections.remove(title)) {
+        _collapsedSections.add(title);
+      }
+    });
+  }
 
   /// Computa a rota mais específica (mais longa) dentre todos os itens
   /// declarados nas `sections` que dá match com `currentRoute` (match
@@ -305,43 +330,84 @@ class _InnovareSideMenuState extends State<InnovareSideMenu> {
 
   /// Flattens the visible sections/items into a single child list, wrapping
   /// each item in an [_Appear] so they cascade into view (staggered by index)
-  /// and a [KeyedSubtree] with a stable key for scroll-to-active.
+  /// and a [KeyedSubtree] with a stable key for scroll-to-active. Collapsible
+  /// sections render a tappable header and roll their items in/out.
   List<Widget> _buildListChildren(bool showCollapsed, String? longestMatch) {
     final style = widget.style;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final children = <Widget>[];
     var appearIndex = 0;
+
+    Widget buildItem(InnovareSideMenuItem item) {
+      return KeyedSubtree(
+        key: _keyFor(item.id),
+        child: _Appear(
+          index: appearIndex++,
+          enabled: style.animateOnAppear,
+          duration: style.appearAnimationDuration,
+          interval: style.appearStaggerInterval,
+          child: _buildMenuItem(item, showCollapsed, longestMatch),
+        ),
+      );
+    }
+
     for (var i = 0; i < widget.sections.length; i++) {
       final section = widget.sections[i];
       if (!shouldShowSection(section, widget.permissionChecker)) continue;
+
+      final visibleItems = [
+        for (final item in section.items)
+          if (shouldShowItem(item, widget.permissionChecker)) item,
+      ];
+
       if (showCollapsed) {
         if (i > 0) children.add(const Divider(height: 1));
-      } else if (section.title != null) {
+        children.addAll(visibleItems.map(buildItem));
+        continue;
+      }
+
+      final collapsible = section.collapsible && section.title != null;
+      final expanded =
+          !collapsible || !_collapsedSections.contains(section.title);
+
+      if (section.title != null) {
         children.add(
-          Padding(
-            padding: style.sectionTitlePadding ?? EdgeInsets.zero,
-            child: Text(
-              section.title!,
-              style: style.sectionTitleStyle,
-              overflow: TextOverflow.clip,
-              maxLines: 1,
-            ),
-          ),
+          collapsible
+              ? _SectionHeader(
+                  title: section.title!,
+                  style: style,
+                  expanded: expanded,
+                  onTap: () => _toggleSection(section.title!),
+                )
+              : Padding(
+                  padding: style.sectionTitlePadding ?? EdgeInsets.zero,
+                  child: Text(
+                    section.title!,
+                    style: style.sectionTitleStyle,
+                    overflow: TextOverflow.clip,
+                    maxLines: 1,
+                  ),
+                ),
         );
       }
-      for (final item in section.items) {
-        if (!shouldShowItem(item, widget.permissionChecker)) continue;
+
+      final itemWidgets = visibleItems.map(buildItem).toList();
+
+      if (collapsible) {
         children.add(
-          KeyedSubtree(
-            key: _keyFor(item.id),
-            child: _Appear(
-              index: appearIndex++,
-              enabled: style.animateOnAppear,
-              duration: style.appearAnimationDuration,
-              interval: style.appearStaggerInterval,
-              child: _buildMenuItem(item, showCollapsed, longestMatch),
+          _CollapsibleBody(
+            expanded: expanded,
+            duration: _transitionDuration,
+            reduceMotion: reduceMotion,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: itemWidgets,
             ),
           ),
         );
+      } else {
+        children.addAll(itemWidgets);
       }
     }
     return children;
@@ -490,6 +556,88 @@ class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
           ),
         );
       },
+    );
+  }
+}
+
+/// A tappable section title with a chevron that rotates with the
+/// expanded/collapsed state. Used for collapsible sections in expanded mode.
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final InnovareSideMenuStyle style;
+  final bool expanded;
+  final VoidCallback onTap;
+
+  const _SectionHeader({
+    required this.title,
+    required this.style,
+    required this.expanded,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      expanded: expanded,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: style.itemBorderRadius,
+        child: Padding(
+          padding: style.sectionTitlePadding ?? EdgeInsets.zero,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: style.sectionTitleStyle,
+                  overflow: TextOverflow.clip,
+                  maxLines: 1,
+                ),
+              ),
+              AnimatedRotation(
+                turns: expanded ? 0.0 : -0.25,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 18,
+                  color: style.sectionTitleStyle?.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Rolls its [child] in/out vertically by animating a clipped height factor,
+/// keeping the child mounted so its state (and stable keys) survive toggles.
+class _CollapsibleBody extends StatelessWidget {
+  final bool expanded;
+  final Duration duration;
+  final bool reduceMotion;
+  final Widget child;
+
+  const _CollapsibleBody({
+    required this.expanded,
+    required this.duration,
+    required this.reduceMotion,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: AnimatedAlign(
+        alignment: Alignment.topCenter,
+        heightFactor: expanded ? 1.0 : 0.0,
+        duration: reduceMotion ? Duration.zero : duration,
+        curve: Curves.easeInOut,
+        child: child,
+      ),
     );
   }
 }
