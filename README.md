@@ -9,12 +9,17 @@ A beautiful, highly customizable side menu widget for Flutter. Supports expanded
 ## Features
 
 - **Declarative API** — Define sections and items with simple data models
-- **Expanded & Collapsed modes** — Animated transition between full menu and icon-only rail
-- **Hierarchical items** — Expandable items with nested sub-items
+- **Expanded & collapsed (rail) modes** — Animated transition between full menu and icon-only rail, with optional **hover-to-expand** and **responsive auto-rail**
+- **Imperative controller** — Collapse/expand and open/close sections from code (e.g. a hamburger button)
+- **Hierarchical items** — Expandable items with nested sub-items (popup overlay when collapsed)
+- **Collapsible sections** — Tappable section headers that roll their items in/out
 - **Theme factories** — `darkDefault`, `lightDefault`, `minimal`, `glassmorphism`, `fromTheme`, plus `fromInnovare` (derives the style from the [Innovare Design System](https://github.com/innovare-tech/innovare_design) tokens)
+- **Motion & haptics** — Animated active/hover states, staggered appearance and tactile press feedback — all reduce-motion aware
+- **Frosted glass & full styling** — Real `BackdropFilter` blur, configurable density and label typography, 60+ style properties
 - **Badge support** — Count, dot, and fully custom badge widgets
+- **Loading & empty states** — Built-in skeleton placeholders and an overridable empty state
 - **Permission-based filtering** — Show/hide items based on user permissions
-- **Full accessibility** — `Semantics` labels, keyboard navigation (Tab/Enter/Escape), focus indicators
+- **Accessibility** — Labeled navigation region, badge-aware item semantics, disabled items and native focus traversal
 - **Header & Footer** — Custom widgets for both expanded and collapsed modes
 - **Design-system ready** — First-class `fromInnovare` integration with the Innovare Design System
 
@@ -218,6 +223,146 @@ InnovareSideMenuItem(
 ),
 ```
 
+### Imperative Control (collapse & sections)
+
+Drive the rail from your own UI — a hamburger button, a shortcut, anything — with an `InnovareSideMenuController`. While attached, the controller is the source of truth for the collapse state (overriding `mode`) and for which collapsible sections are open. You own its lifecycle, so dispose it with your `State`.
+
+```dart
+class _ShellState extends State<Shell> {
+  final _menu = InnovareSideMenuController(collapsed: false);
+
+  @override
+  void dispose() {
+    _menu.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: _menu.toggleCollapsed, // collapse() / expand() too
+        ),
+      ),
+      body: Row(
+        children: [
+          InnovareSideMenu(
+            controller: _menu,
+            sections: const [ /* ... */ ],
+          ),
+          const Expanded(child: SizedBox(/* page */)),
+        ],
+      ),
+    );
+  }
+}
+```
+
+The controller also exposes `collapseSection(title)` / `expandSection(title)` / `toggleSection(title)` plus the `isCollapsed` / `isSectionExpanded(title)` getters. It's a `ChangeNotifier`, so you can listen to react to state changes.
+
+### Collapsible Sections
+
+Set `collapsible: true` on a section (it needs a `title`) to render a tappable header with a rotating chevron that rolls its items in/out. Use `initiallyExpanded` to control the starting state.
+
+```dart
+InnovareSideMenuSection(
+  title: 'CONTENT',
+  collapsible: true,
+  initiallyExpanded: false,
+  items: [ /* ... */ ],
+)
+```
+
+### Responsive & Hover-to-Expand
+
+```dart
+InnovareSideMenu(
+  style: InnovareSideMenuThemes.lightDefault().copyWith(
+    // Expand a collapsed rail in place while hovered (desktop/web).
+    expandOnHover: true,
+    // Auto-collapse to a rail below this width, regardless of `mode`.
+    autoCollapseBelowWidth: 700,
+  ),
+  sections: [ /* ... */ ],
+)
+```
+
+For a mobile hamburger drawer, place the menu inside `Scaffold.drawer`.
+
+### Loading & Empty States
+
+```dart
+// Skeleton placeholders while data loads.
+InnovareSideMenu(
+  isLoading: true,
+  loadingItemCount: 6,
+  sections: const [],
+)
+
+// Custom empty state when no items are visible (e.g. after permission filtering).
+InnovareSideMenu(
+  emptyState: const Center(child: Text('No menu items')),
+  sections: sections,
+)
+```
+
+### Disabled Items
+
+```dart
+InnovareSideMenuItem(
+  id: 'reports',
+  icon: Icons.bar_chart,
+  title: 'Reports (soon)',
+  enabled: false, // dimmed, non-focusable, taps ignored, announced as disabled
+)
+```
+
+### Accessibility
+
+```dart
+InnovareSideMenu(
+  semanticsLabel: 'Main navigation', // labels the whole region for screen readers
+  sections: [
+    InnovareSideMenuSection(
+      items: [
+        InnovareSideMenuItem(
+          id: 'inbox',
+          icon: Icons.inbox,
+          title: 'Inbox',
+          badge: InnovareSideMenuBadge.count(12),
+          // Announced as "Inbox, 12 notifications".
+          onTap: () {},
+        ),
+      ],
+    ),
+  ],
+)
+```
+
+Items expose an `accessibleLabel` that combines `semanticLabel` (or `title`) with a short badge description. All motion honors `MediaQuery.disableAnimations`.
+
+### Frosted Glass, Density & Typography
+
+Every visual is a token on `InnovareSideMenuStyle`:
+
+```dart
+InnovareSideMenu(
+  style: InnovareSideMenuThemes.glassmorphism().copyWith(
+    // Real frosted glass: blurs whatever is rendered behind the rail.
+    backdropBlur: 20,
+    // Tune item spacing.
+    visualDensity: VisualDensity.compact,
+    // Full base label typography (active/inactive color, size & weight layer on top).
+    itemTextStyle: const TextStyle(letterSpacing: 0.2, height: 1.2),
+  ),
+  sections: [ /* ... */ ],
+)
+```
+
+> `backdropBlur` needs something behind the rail to blur — use it over a gradient or image background with a translucent `decoration` color (the `glassmorphism()` theme already sets one).
+
 ## API Reference
 
 ### `InnovareSideMenu`
@@ -233,6 +378,12 @@ The main widget. Key parameters:
 | `header` / `footer` | `Widget?` | Custom widgets for expanded mode |
 | `collapsedHeader` / `collapsedFooter` | `Widget?` | Custom widgets for collapsed mode |
 | `modeTransitionDuration` | `Duration?` | Animation duration (default: 300ms) |
+| `controller` | `InnovareSideMenuController?` | Imperative collapse/section control (overrides `mode` when set) |
+| `isLoading` | `bool` | Render skeleton placeholders (default: `false`) |
+| `loadingItemCount` | `int` | Number of skeleton rows while loading (default: `6`) |
+| `emptyState` | `Widget?` | Shown when no items are visible after filtering |
+| `semanticsLabel` | `String?` | Accessibility label for the navigation region |
+| `currentRoute` | `String?` | Current route, to match active items by `route` |
 
 ### `InnovareSideMenuItem`
 
@@ -247,10 +398,43 @@ The main widget. Key parameters:
 | `badge` | `InnovareSideMenuBadge?` | Badge to display |
 | `permission` | `String?` | Permission key for filtering |
 | `semanticLabel` | `String?` | Accessibility label override |
+| `enabled` | `bool` | Interactive state; `false` dims and disables (default: `true`) |
+| `tooltip` | `String?` | Hover tooltip (defaults to `title`) |
+| `route` | `String?` | Route key for active-by-route matching |
+| `trailing` | `Widget?` | Trailing widget |
+| `customLeading` | `Widget?` | Replaces the default leading icon |
+
+### `InnovareSideMenuSection`
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `items` | `List<InnovareSideMenuItem>` | Items in the section (required) |
+| `title` | `String?` | Section title (expanded mode) |
+| `collapsible` | `bool` | Tappable collapsible header; needs a `title` (default: `false`) |
+| `initiallyExpanded` | `bool` | Starting state when `collapsible` (default: `true`) |
+
+### `InnovareSideMenuController`
+
+A `ChangeNotifier` for imperative control — construct it, pass it to `InnovareSideMenu(controller: ...)`, and dispose it yourself.
+
+```dart
+InnovareSideMenuController({
+  bool collapsed = false,
+  Iterable<String> collapsedSections = const [],
+})
+```
+
+| Member | Description |
+|--------|-------------|
+| `collapse()` / `expand()` / `toggleCollapsed()` | Control the rail collapse state |
+| `setCollapsed(bool)` | Set the collapse state explicitly |
+| `isCollapsed` / `isExpanded` | Current collapse state |
+| `collapseSection(title)` / `expandSection(title)` / `toggleSection(title)` | Open/close a collapsible section |
+| `isSectionCollapsed(title)` / `isSectionExpanded(title)` | Query a section's state |
 
 ### `InnovareSideMenuStyle`
 
-Comprehensive styling class with 50+ properties covering container, header/footer, sections, items, sub-items, collapsed mode, and badges. Use `copyWith()` to customize or start from a theme factory.
+Comprehensive styling class with 60+ properties covering the container, header/footer, sections, items, sub-items, collapsed mode and badges — plus motion (`stateAnimationDuration`, `animateOnAppear`, `appearStaggerInterval`, `pressedScale`, `hoverScale`, `enableHaptics`), layout (`expandOnHover`, `autoCollapseBelowWidth`, `disabledOpacity`) and visuals (`backdropBlur`, `visualDensity`, `itemTextStyle`, `subItemTextStyle`). Use `copyWith()` to customize or start from a theme factory.
 
 ### `InnovareSideMenuThemes`
 
@@ -265,7 +449,7 @@ Extension on `InnovareSideMenuStyle` with these factory constructors:
 
 ## Example
 
-See the [example app](example/) for a full interactive demo with theme switching, mode toggle, badges, and permission simulation.
+See the [example app](example/) for a full interactive demo with theme switching, mode toggle, collapsible sections, hover-expand, responsive auto-rail, loading state, badges, and permission simulation.
 
 ```bash
 cd example
