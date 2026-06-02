@@ -118,5 +118,4 @@ void main() {
       expect(updated.semanticLabel, 'New label');
     });
   });
-
 }

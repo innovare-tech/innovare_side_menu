@@ -51,4 +51,13 @@ class InnovareSideMenuBadge {
         color = null,
         textColor = null,
         isDot = false;
+
+  /// A short screen-reader description of this badge, or `null` when it carries
+  /// no additional textual meaning (custom badges).
+  String? get semanticsDescription {
+    if (isDot) return 'notification';
+    final value = count;
+    if (value != null) return '$value notifications';
+    return null;
+  }
 }

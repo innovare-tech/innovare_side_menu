@@ -179,6 +179,66 @@ class InnovareSideMenuStyle {
   /// Positional offset for the badge relative to the icon.
   final EdgeInsets? badgeOffset;
 
+  /// Duration for animating active/hover state changes on items (decoration,
+  /// text and icon color). Set to [Duration.zero] to disable. Defaults to 200ms.
+  final Duration stateAnimationDuration;
+
+  /// Whether items animate (fade + slide) into view on first appearance.
+  /// Defaults to `true`.
+  final bool animateOnAppear;
+
+  /// Duration of each item's appearance animation. Defaults to 350ms.
+  final Duration appearAnimationDuration;
+
+  /// Stagger delay added per item index for the appearance cascade.
+  /// Defaults to 45ms.
+  final Duration appearStaggerInterval;
+
+  /// Whether a selection haptic fires when an item is tapped. Defaults to `true`.
+  final bool enableHaptics;
+
+  /// Scale applied while an item is pressed (tap-down). Defaults to `0.97`;
+  /// set to `1.0` to disable the press effect.
+  final double pressedScale;
+
+  /// Scale applied while an item is hovered on desktop/web. Defaults to `1.0`
+  /// (no scale — relies on the hover color).
+  final double hoverScale;
+
+  /// Whether the menu auto-scrolls to reveal the active item on mount and when
+  /// the active item changes. Defaults to `true`.
+  final bool autoScrollToActive;
+
+  /// When collapsed, expand the rail in place while the pointer hovers over it
+  /// (desktop/web). Defaults to `false`.
+  final bool expandOnHover;
+
+  /// When the screen is narrower than this width (logical px), the menu renders
+  /// as a collapsed rail regardless of `mode`. `null` disables it (default).
+  final double? autoCollapseBelowWidth;
+
+  /// Opacity applied to disabled items (when `InnovareSideMenuItem.enabled` is
+  /// `false`). Defaults to `0.38` (Material's disabled opacity).
+  final double disabledOpacity;
+
+  /// Gaussian blur sigma applied behind the menu for a frosted-glass effect.
+  /// Pair it with a translucent [decoration] color so the blurred backdrop
+  /// shows through. `null` (default) disables the blur. The blur is clipped to
+  /// [borderRadius] (falling back to the decoration's radius).
+  final double? backdropBlur;
+
+  /// Visual density forwarded to each item's `ListTile` to tune vertical
+  /// spacing (e.g. `VisualDensity.compact`). `null` uses the ambient density.
+  final VisualDensity? visualDensity;
+
+  /// Base text style for item labels. The active/inactive color, [itemFontSize]
+  /// and font weight are layered on top, so use this to set family, letter
+  /// spacing, height, etc. `null` (default) uses a plain style.
+  final TextStyle? itemTextStyle;
+
+  /// Base text style for sub-item labels. See [itemTextStyle].
+  final TextStyle? subItemTextStyle;
+
   /// Creates a style configuration with sensible defaults.
   ///
   /// All parameters are optional. The default [width] is `280` and
@@ -241,6 +301,21 @@ class InnovareSideMenuStyle {
     this.badgeTextColor,
     this.badgeTextStyle,
     this.badgeOffset,
+    this.stateAnimationDuration = const Duration(milliseconds: 200),
+    this.animateOnAppear = true,
+    this.appearAnimationDuration = const Duration(milliseconds: 350),
+    this.appearStaggerInterval = const Duration(milliseconds: 45),
+    this.enableHaptics = true,
+    this.pressedScale = 0.97,
+    this.hoverScale = 1.0,
+    this.autoScrollToActive = true,
+    this.expandOnHover = false,
+    this.autoCollapseBelowWidth,
+    this.disabledOpacity = 0.38,
+    this.backdropBlur,
+    this.visualDensity,
+    this.itemTextStyle,
+    this.subItemTextStyle,
   });
 
   /// Creates a copy of this style with the given fields replaced.
@@ -302,6 +377,21 @@ class InnovareSideMenuStyle {
     Color? badgeTextColor,
     TextStyle? badgeTextStyle,
     EdgeInsets? badgeOffset,
+    Duration? stateAnimationDuration,
+    bool? animateOnAppear,
+    Duration? appearAnimationDuration,
+    Duration? appearStaggerInterval,
+    bool? enableHaptics,
+    double? pressedScale,
+    double? hoverScale,
+    bool? autoScrollToActive,
+    bool? expandOnHover,
+    double? autoCollapseBelowWidth,
+    double? disabledOpacity,
+    double? backdropBlur,
+    VisualDensity? visualDensity,
+    TextStyle? itemTextStyle,
+    TextStyle? subItemTextStyle,
   }) {
     return InnovareSideMenuStyle(
       width: width ?? this.width,
@@ -323,16 +413,12 @@ class InnovareSideMenuStyle {
       itemIconSize: itemIconSize ?? this.itemIconSize,
       itemIconPadding: itemIconPadding ?? this.itemIconPadding,
       itemIconBorderRadius: itemIconBorderRadius ?? this.itemIconBorderRadius,
-      activeItemDecoration:
-          activeItemDecoration ?? this.activeItemDecoration,
-      activeItemTextColor:
-          activeItemTextColor ?? this.activeItemTextColor,
-      activeItemIconColor:
-          activeItemIconColor ?? this.activeItemIconColor,
+      activeItemDecoration: activeItemDecoration ?? this.activeItemDecoration,
+      activeItemTextColor: activeItemTextColor ?? this.activeItemTextColor,
+      activeItemIconColor: activeItemIconColor ?? this.activeItemIconColor,
       activeItemIconDecoration:
           activeItemIconDecoration ?? this.activeItemIconDecoration,
-      activeItemFontWeight:
-          activeItemFontWeight ?? this.activeItemFontWeight,
+      activeItemFontWeight: activeItemFontWeight ?? this.activeItemFontWeight,
       inactiveItemDecoration:
           inactiveItemDecoration ?? this.inactiveItemDecoration,
       inactiveItemTextColor:
@@ -348,8 +434,7 @@ class InnovareSideMenuStyle {
       subItemMargin: subItemMargin ?? this.subItemMargin,
       subItemIndentation: subItemIndentation ?? this.subItemIndentation,
       subItemIconSize: subItemIconSize ?? this.subItemIconSize,
-      subItemBorderRadius:
-          subItemBorderRadius ?? this.subItemBorderRadius,
+      subItemBorderRadius: subItemBorderRadius ?? this.subItemBorderRadius,
       activeSubItemDecoration:
           activeSubItemDecoration ?? this.activeSubItemDecoration,
       inactiveSubItemDecoration:
@@ -370,19 +455,36 @@ class InnovareSideMenuStyle {
       itemFontSize: itemFontSize ?? this.itemFontSize,
       subItemFontSize: subItemFontSize ?? this.subItemFontSize,
       collapsedWidth: collapsedWidth ?? this.collapsedWidth,
-      collapsedItemPadding:
-          collapsedItemPadding ?? this.collapsedItemPadding,
+      collapsedItemPadding: collapsedItemPadding ?? this.collapsedItemPadding,
       collapsedIconSize: collapsedIconSize ?? this.collapsedIconSize,
       collapsedActiveItemDecoration:
           collapsedActiveItemDecoration ?? this.collapsedActiveItemDecoration,
-      collapsedInactiveItemDecoration:
-          collapsedInactiveItemDecoration ??
-              this.collapsedInactiveItemDecoration,
+      collapsedInactiveItemDecoration: collapsedInactiveItemDecoration ??
+          this.collapsedInactiveItemDecoration,
       badgeSize: badgeSize ?? this.badgeSize,
       badgeColor: badgeColor ?? this.badgeColor,
       badgeTextColor: badgeTextColor ?? this.badgeTextColor,
       badgeTextStyle: badgeTextStyle ?? this.badgeTextStyle,
       badgeOffset: badgeOffset ?? this.badgeOffset,
+      stateAnimationDuration:
+          stateAnimationDuration ?? this.stateAnimationDuration,
+      animateOnAppear: animateOnAppear ?? this.animateOnAppear,
+      appearAnimationDuration:
+          appearAnimationDuration ?? this.appearAnimationDuration,
+      appearStaggerInterval:
+          appearStaggerInterval ?? this.appearStaggerInterval,
+      enableHaptics: enableHaptics ?? this.enableHaptics,
+      pressedScale: pressedScale ?? this.pressedScale,
+      hoverScale: hoverScale ?? this.hoverScale,
+      autoScrollToActive: autoScrollToActive ?? this.autoScrollToActive,
+      expandOnHover: expandOnHover ?? this.expandOnHover,
+      autoCollapseBelowWidth:
+          autoCollapseBelowWidth ?? this.autoCollapseBelowWidth,
+      disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+      backdropBlur: backdropBlur ?? this.backdropBlur,
+      visualDensity: visualDensity ?? this.visualDensity,
+      itemTextStyle: itemTextStyle ?? this.itemTextStyle,
+      subItemTextStyle: subItemTextStyle ?? this.subItemTextStyle,
     );
   }
 }

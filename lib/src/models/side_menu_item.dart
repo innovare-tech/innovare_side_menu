@@ -52,6 +52,18 @@ class InnovareSideMenuItem {
   /// if not specified.
   final String? semanticLabel;
 
+  /// Whether the item is interactive. When `false`, the item is dimmed,
+  /// non-focusable, and ignores taps and key activation. Defaults to `true`.
+  final bool enabled;
+
+  /// The label announced to screen readers: [semanticLabel] (or [title] as a
+  /// fallback) plus a short badge description when a [badge] is present.
+  String get accessibleLabel {
+    final base = semanticLabel ?? title;
+    final badgeDescription = badge?.semanticsDescription;
+    return badgeDescription == null ? base : '$base, $badgeDescription';
+  }
+
   /// Creates a menu item.
   ///
   /// The [id], [icon], and [title] parameters are required.
@@ -69,6 +81,7 @@ class InnovareSideMenuItem {
     this.badge,
     this.tooltip,
     this.semanticLabel,
+    this.enabled = true,
   });
 
   /// Creates a copy of this item with the given fields replaced.
@@ -86,6 +99,7 @@ class InnovareSideMenuItem {
     InnovareSideMenuBadge? badge,
     String? tooltip,
     String? semanticLabel,
+    bool? enabled,
   }) {
     return InnovareSideMenuItem(
       id: id ?? this.id,
@@ -101,6 +115,7 @@ class InnovareSideMenuItem {
       badge: badge ?? this.badge,
       tooltip: tooltip ?? this.tooltip,
       semanticLabel: semanticLabel ?? this.semanticLabel,
+      enabled: enabled ?? this.enabled,
     );
   }
 }

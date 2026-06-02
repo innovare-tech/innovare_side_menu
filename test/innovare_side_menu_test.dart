@@ -5,8 +5,8 @@ void main() {
   group('Package exports', () {
     test('InnovareSideMenuMode has expanded and collapsed values', () {
       expect(InnovareSideMenuMode.values, hasLength(2));
-      expect(InnovareSideMenuMode.values,
-          contains(InnovareSideMenuMode.expanded));
+      expect(
+          InnovareSideMenuMode.values, contains(InnovareSideMenuMode.expanded));
       expect(InnovareSideMenuMode.values,
           contains(InnovareSideMenuMode.collapsed));
     });

@@ -121,8 +121,7 @@ void main() {
       expect(find.text('Visible'), findsOneWidget);
     });
 
-    testWidgets(
-        'expandable item hidden when no sub-items have permission',
+    testWidgets('expandable item hidden when no sub-items have permission',
         (tester) async {
       await tester.pumpWidget(buildApp(
         permissionChecker: (_) => false,

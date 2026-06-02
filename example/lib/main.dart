@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:innovare_design/innovare_design.dart';
 import 'package:innovare_side_menu/innovare_side_menu.dart';
 
 void main() {
@@ -24,14 +25,19 @@ class ExampleApp extends StatelessWidget {
 }
 
 enum ThemeOption {
-  darkDefault('Dark Default'),
-  lightDefault('Light Default'),
-  fromTheme('From ThemeData'),
-  minimal('Minimal'),
-  glassmorphism('Glassmorphism');
+  innovareAurora('Innovare · Aurora', InnvPreset.aurora),
+  innovareVibe('Innovare · Vibe', InnvPreset.vibe),
+  innovareSlate('Innovare · Slate', InnvPreset.slate),
+  innovareLumen('Innovare · Lumen', InnvPreset.lumen),
+  darkDefault('Dark Default', null),
+  lightDefault('Light Default', null),
+  fromTheme('From ThemeData', null),
+  minimal('Minimal', null),
+  glassmorphism('Glassmorphism', null);
 
   final String label;
-  const ThemeOption(this.label);
+  final InnvPreset? preset;
+  const ThemeOption(this.label, this.preset);
 }
 
 class ExampleScreen extends StatefulWidget {
@@ -42,14 +48,29 @@ class ExampleScreen extends StatefulWidget {
 }
 
 class _ExampleScreenState extends State<ExampleScreen> {
-  ThemeOption _selectedTheme = ThemeOption.darkDefault;
+  ThemeOption _selectedTheme = ThemeOption.innovareAurora;
   InnovareSideMenuMode _mode = InnovareSideMenuMode.expanded;
   String _activeItemId = 'dashboard';
   bool _isAdmin = true;
+  bool _innovareDark = false;
   String _contentTitle = 'Dashboard';
+  bool _collapsibleSections = false;
+  bool _expandOnHover = false;
+  bool _responsive = false;
+  bool _isLoading = false;
 
   InnovareSideMenuStyle _getStyle(BuildContext context) {
     switch (_selectedTheme) {
+      case ThemeOption.innovareAurora:
+      case ThemeOption.innovareVibe:
+      case ThemeOption.innovareSlate:
+      case ThemeOption.innovareLumen:
+        return InnovareSideMenuThemes.fromInnovare(
+          InnvPresets.resolve(
+            _selectedTheme.preset!,
+            _innovareDark ? Brightness.dark : Brightness.light,
+          ),
+        );
       case ThemeOption.darkDefault:
         return InnovareSideMenuThemes.darkDefault();
       case ThemeOption.lightDefault:
@@ -98,10 +119,18 @@ class _ExampleScreenState extends State<ExampleScreen> {
             isActive: _activeItemId == 'calendar',
             onTap: () => _onItemTap('calendar', 'Calendar'),
           ),
+          InnovareSideMenuItem(
+            id: 'reports',
+            icon: Icons.bar_chart_outlined,
+            title: 'Reports (soon)',
+            enabled: false,
+            onTap: () => _onItemTap('reports', 'Reports'),
+          ),
         ],
       ),
       InnovareSideMenuSection(
         title: 'CONTENT',
+        collapsible: _collapsibleSections,
         items: [
           InnovareSideMenuItem(
             id: 'products',
@@ -143,6 +172,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
       ),
       InnovareSideMenuSection(
         title: 'ADMIN',
+        collapsible: _collapsibleSections,
         items: [
           InnovareSideMenuItem(
             id: 'users',
@@ -190,34 +220,85 @@ class _ExampleScreenState extends State<ExampleScreen> {
   }
 
   bool _needsDarkBackground() {
+    if (_selectedTheme.preset != null) return _innovareDark;
     return _selectedTheme == ThemeOption.darkDefault ||
         _selectedTheme == ThemeOption.glassmorphism;
   }
 
   @override
   Widget build(BuildContext context) {
-    final style = _getStyle(context);
+    final style = _getStyle(context).copyWith(
+      expandOnHover: _expandOnHover,
+      autoCollapseBelowWidth: _responsive ? 700 : null,
+    );
     final darkBg = _needsDarkBackground();
+    final isGlass = _selectedTheme == ThemeOption.glassmorphism;
 
     return Scaffold(
       backgroundColor: darkBg ? const Color(0xFF0a0a0a) : null,
-      body: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: InnovareSideMenu(
-              style: style,
-              mode: _mode,
-              modeTransitionDuration: const Duration(milliseconds: 300),
-              permissionChecker: (permission) {
-                if (permission == 'admin') return _isAdmin;
-                return true;
-              },
-              header: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Container(
+      // A vivid gradient sits behind the rail so the glassmorphism theme's
+      // BackdropFilter has something colorful to frost.
+      body: DecoratedBox(
+        decoration: isGlass
+            ? const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF0F2027),
+                    Color(0xFF2C5364),
+                    Color(0xFF6D28D9),
+                  ],
+                ),
+              )
+            : const BoxDecoration(),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: InnovareSideMenu(
+                style: style,
+                mode: _mode,
+                modeTransitionDuration: const Duration(milliseconds: 300),
+                semanticsLabel: 'Main navigation',
+                isLoading: _isLoading,
+                permissionChecker: (permission) {
+                  if (permission == 'admin') return _isAdmin;
+                  return true;
+                },
+                header: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.hexagon_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Innovare',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: darkBg ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                collapsedHeader: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Center(
+                    child: Container(
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
@@ -230,41 +311,44 @@ class _ExampleScreenState extends State<ExampleScreen> {
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Innovare',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: darkBg ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              collapsedHeader: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Center(
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.hexagon_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
                   ),
                 ),
-              ),
-              footer: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    CircleAvatar(
+                footer: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.blue.shade100,
+                        child: Text(
+                          'J',
+                          style: TextStyle(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'John Doe',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: darkBg
+                                ? Colors.white.withValues(alpha: 0.8)
+                                : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                collapsedFooter: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Center(
+                    child: CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.blue.shade100,
                       child: Text(
@@ -275,103 +359,74 @@ class _ExampleScreenState extends State<ExampleScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                  ),
+                ),
+                sections: _buildSections(),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildToolbar(),
+                    const SizedBox(height: 24),
+                    Text(
+                      _contentTitle,
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Selected item: $_activeItemId',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
                     Expanded(
-                      child: Text(
-                        'John Doe',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: darkBg
-                              ? Colors.white.withValues(alpha: 0.8)
-                              : Colors.black87,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.touch_app_outlined,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Tap a menu item to navigate',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              collapsedFooter: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.blue.shade100,
-                    child: Text(
-                      'J',
-                      style: TextStyle(
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              sections: _buildSections(),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildToolbar(),
-                  const SizedBox(height: 24),
-                  Text(
-                    _contentTitle,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selected item: $_activeItemId',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.touch_app_outlined,
-                              size: 48,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Tap a menu item to navigate',
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -415,6 +470,32 @@ class _ExampleScreenState extends State<ExampleScreen> {
           selected: _isAdmin,
           onSelected: (value) => setState(() => _isAdmin = value),
         ),
+        FilterChip(
+          label: const Text('Collapsible sections'),
+          selected: _collapsibleSections,
+          onSelected: (value) => setState(() => _collapsibleSections = value),
+        ),
+        FilterChip(
+          label: const Text('Hover expand'),
+          selected: _expandOnHover,
+          onSelected: (value) => setState(() => _expandOnHover = value),
+        ),
+        FilterChip(
+          label: const Text('Responsive (<700px)'),
+          selected: _responsive,
+          onSelected: (value) => setState(() => _responsive = value),
+        ),
+        FilterChip(
+          label: const Text('Loading'),
+          selected: _isLoading,
+          onSelected: (value) => setState(() => _isLoading = value),
+        ),
+        if (_selectedTheme.preset != null)
+          FilterChip(
+            label: const Text('Dark'),
+            selected: _innovareDark,
+            onSelected: (value) => setState(() => _innovareDark = value),
+          ),
       ],
     );
   }

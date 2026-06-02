@@ -27,46 +27,12 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   bool _isPopupOpen = false;
-  bool _isFocused = false;
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-  }
 
   @override
   void dispose() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    _focusNode.dispose();
     super.dispose();
-  }
-
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.enter ||
-          event.logicalKey == LogicalKeyboardKey.space) {
-        final hasSubItems = widget.item.subItems != null &&
-            widget.item.subItems!.isNotEmpty;
-        if (hasSubItems) {
-          if (_isPopupOpen) {
-            _removeOverlay();
-          } else {
-            _showSubItemsPopup();
-          }
-        } else {
-          widget.item.onTap?.call();
-        }
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.escape && _isPopupOpen) {
-        _removeOverlay();
-        return KeyEventResult.handled;
-      }
-    }
-    return KeyEventResult.ignored;
   }
 
   void _removeOverlay() {
@@ -93,11 +59,24 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
     });
   }
 
+  bool _hasActiveSubItem(InnovareSideMenuItem item) {
+    final subs = item.subItems;
+    if (subs == null) return false;
+    for (final sub in subs) {
+      if (sub.isActive || _hasActiveSubItem(sub)) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isActive = widget.item.isActive;
     final hasSubItems =
         widget.item.subItems != null && widget.item.subItems!.isNotEmpty;
+    // A collapsed parent reflects its section: it reads as active when it (or
+    // any descendant) is active, and while its sub-items popup is open.
+    final isActive = widget.item.isActive ||
+        _hasActiveSubItem(widget.item) ||
+        (hasSubItems && _isPopupOpen);
 
     final decoration = isActive
         ? widget.style.collapsedActiveItemDecoration
@@ -110,54 +89,43 @@ class _CollapsedMenuItemState extends State<CollapsedMenuItem> {
     final iconSize =
         widget.style.collapsedIconSize ?? widget.style.itemIconSize;
 
-    final onTap = hasSubItems
-        ? () {
-            if (_isPopupOpen) {
-              _removeOverlay();
-            } else {
-              _showSubItemsPopup();
-            }
-          }
-        : widget.item.onTap;
+    void handleTap() {
+      if (widget.style.enableHaptics) HapticFeedback.selectionClick();
+      if (hasSubItems) {
+        if (_isPopupOpen) {
+          _removeOverlay();
+        } else {
+          _showSubItemsPopup();
+        }
+      } else {
+        widget.item.onTap?.call();
+      }
+    }
+
+    final onTap =
+        (!hasSubItems && widget.item.onTap == null) ? null : handleTap;
 
     return Semantics(
-      label: widget.item.semanticLabel ?? widget.item.title,
+      label: widget.item.accessibleLabel,
       button: true,
       selected: isActive,
-      child: Focus(
-        focusNode: _focusNode,
-        onFocusChange: (focused) {
-          setState(() => _isFocused = focused);
-        },
-        onKeyEvent: _handleKeyEvent,
-        child: CompositedTransformTarget(
-          link: _layerLink,
-          child: Tooltip(
-            message: widget.item.tooltip ?? widget.item.title,
-            waitDuration: Duration(milliseconds: 500),
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 2),
-              decoration: decoration,
-              foregroundDecoration: _isFocused
-                  ? BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                      borderRadius: widget.style.itemBorderRadius ??
-                          BorderRadius.circular(4),
-                    )
-                  : null,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: widget.style.itemBorderRadius,
-                hoverColor: widget.style.itemHoverColor,
-                child: Padding(
-                  padding: widget.style.collapsedItemPadding ??
-                      EdgeInsets.symmetric(vertical: 12),
-                  child: Center(
-                    child: _buildIcon(iconColor, iconSize),
-                  ),
+      child: CompositedTransformTarget(
+        link: _layerLink,
+        child: Tooltip(
+          message: widget.item.tooltip ?? widget.item.title,
+          waitDuration: Duration(milliseconds: 500),
+          child: Container(
+            margin: EdgeInsets.symmetric(vertical: 2),
+            decoration: decoration,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: widget.style.itemBorderRadius,
+              hoverColor: widget.style.itemHoverColor,
+              child: Padding(
+                padding: widget.style.collapsedItemPadding ??
+                    EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: _buildIcon(iconColor, iconSize),
                 ),
               ),
             ),
@@ -256,7 +224,12 @@ class _SubItemsPopup extends StatelessWidget {
                   for (var subItem in item.subItems!)
                     if (shouldShowItem(subItem, permissionChecker))
                       SimpleMenuItem(
-                        item: subItem,
+                        item: subItem.copyWith(
+                          onTap: () {
+                            subItem.onTap?.call();
+                            onClose();
+                          },
+                        ),
                         style: style,
                         isSubItem: true,
                       ),

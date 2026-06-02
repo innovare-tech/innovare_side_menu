@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:innovare_design/innovare_design.dart';
 
 import 'side_menu_style.dart';
 
 /// Built-in theme factories for [InnovareSideMenuStyle].
 ///
-/// Provides 5 ready-to-use themes:
+/// Provides ready-to-use themes:
 /// - [darkDefault] — Dark gradient with blue accents.
 /// - [fromTheme] — Adapts to any Flutter [ThemeData].
+/// - [fromInnovare] — Derives the style from Innovare Design System tokens.
 /// - [lightDefault] — Light background with blue active items.
 /// - [minimal] — Clean, borderless design with left-border indicator.
 /// - [glassmorphism] — Translucent glass effect.
@@ -93,8 +95,7 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(8),
-        border:
-            Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
       ),
       inactiveSubItemDecoration: BoxDecoration(
         color: Colors.transparent,
@@ -185,8 +186,7 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
       inactiveItemTextColor: theme.colorScheme.onSurface,
       inactiveItemIconColor: theme.colorScheme.onSurfaceVariant,
       inactiveItemIconDecoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(10),
       ),
       inactiveItemFontWeight: FontWeight.w500,
@@ -230,6 +230,136 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
       badgeColor: theme.colorScheme.error,
       badgeTextColor: theme.colorScheme.onError,
       badgeTextStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+    );
+  }
+
+  /// Derives a style from an [InnovareDesignTheme] — the Innovare Design
+  /// System's single source of truth.
+  ///
+  /// Where [fromTheme] reads Material's [ColorScheme], this maps the design
+  /// tokens directly, so the menu inherits the client's brand color, corner
+  /// [InnvShapeScheme], type scale and motion personality. Pass `context.innv`
+  /// (or a specific preset's resolved theme). Light/dark is honored through the
+  /// scheme's [Brightness], and surface separation follows [InnvDepthStyle].
+  static InnovareSideMenuStyle fromInnovare(InnovareDesignTheme theme) {
+    final c = theme.colors;
+    final type = theme.typography;
+    final shape = theme.shape;
+    final motion = theme.motion;
+
+    final isBordered = theme.depth == InnvDepthStyle.bordered;
+    final isGlass = theme.depth == InnvDepthStyle.glass;
+    final hasSoftShadow = theme.depth == InnvDepthStyle.soft;
+
+    // No on-danger token exists, so anchor badge text contrast off the red.
+    final badgeOn = ThemeData.estimateBrightnessForColor(c.danger.content) ==
+            Brightness.dark
+        ? const Color(0xFFFFFFFF)
+        : const Color(0xFF000000);
+
+    return InnovareSideMenuStyle(
+      decoration: BoxDecoration(
+        color: c.surfaceContainer,
+        borderRadius: shape.cardRadius,
+        border: (isBordered || isGlass)
+            ? Border.all(color: c.outlineVariant)
+            : null,
+        boxShadow: hasSoftShadow ? InnvElevation.lg : InnvElevation.none,
+      ),
+      headerPadding: const EdgeInsets.all(InnvSpacing.xl),
+      headerDivider: BorderSide(color: c.outlineVariant),
+      footerPadding: const EdgeInsets.all(InnvSpacing.md),
+      footerDivider: BorderSide(color: c.outlineVariant),
+      sectionTitleStyle: type.labelSmall.copyWith(color: c.onSurfaceMuted),
+      sectionTitlePadding: const EdgeInsets.only(
+        left: InnvSpacing.md,
+        top: InnvSpacing.md,
+        bottom: InnvSpacing.sm,
+      ),
+      sectionPadding: const EdgeInsets.symmetric(
+        horizontal: InnvSpacing.md,
+        vertical: InnvSpacing.sm,
+      ),
+      itemPadding: const EdgeInsets.symmetric(
+        horizontal: InnvSpacing.md,
+        vertical: InnvSpacing.sm,
+      ),
+      itemMargin: const EdgeInsets.only(bottom: InnvSpacing.xs),
+      itemBorderRadius: shape.chipRadius,
+      itemIconSize: InnvSpacing.xl,
+      itemIconPadding: const EdgeInsets.all(InnvSpacing.sm),
+      itemIconBorderRadius: shape.controlRadius,
+      activeItemDecoration: BoxDecoration(
+        color: c.brandContainer,
+        borderRadius: shape.chipRadius,
+      ),
+      activeItemTextColor: c.onBrandContainer,
+      activeItemIconColor: c.brand,
+      activeItemIconDecoration: BoxDecoration(
+        color: c.brand.withValues(alpha: 0.15),
+        borderRadius: shape.controlRadius,
+      ),
+      activeItemFontWeight: FontWeight.w600,
+      inactiveItemDecoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: shape.chipRadius,
+      ),
+      inactiveItemTextColor: c.onSurface,
+      inactiveItemIconColor: c.onSurfaceVariant,
+      inactiveItemIconDecoration: BoxDecoration(
+        color: c.surfaceContainerHigh,
+        borderRadius: shape.controlRadius,
+      ),
+      inactiveItemFontWeight: FontWeight.w500,
+      itemHoverColor: c.surfaceContainerHigh,
+      subItemPadding: const EdgeInsets.symmetric(
+        horizontal: InnvSpacing.md,
+        vertical: InnvSpacing.xs,
+      ),
+      subItemMargin: const EdgeInsets.only(
+        bottom: InnvSpacing.xxs,
+        left: InnvSpacing.md,
+        right: InnvSpacing.xs,
+      ),
+      subItemIndentation: InnvSpacing.sm,
+      subItemIconSize: InnvSpacing.lg,
+      subItemBorderRadius: shape.controlRadius,
+      activeSubItemDecoration: BoxDecoration(
+        color: c.brandContainer,
+        borderRadius: shape.controlRadius,
+      ),
+      inactiveSubItemDecoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: shape.controlRadius,
+      ),
+      activeSubItemTextColor: c.onBrandContainer,
+      inactiveSubItemTextColor: c.onSurfaceVariant,
+      activeSubItemIconColor: c.brand,
+      inactiveSubItemIconColor: c.onSurfaceMuted,
+      expandIcon: Icons.expand_more,
+      expandIconSize: InnvSpacing.xl,
+      expandIconColor: c.onSurfaceVariant,
+      expandAnimationDuration: motion.micro,
+      itemFontSize: type.bodyMedium.fontSize,
+      subItemFontSize: type.bodySmall.fontSize,
+      collapsedItemPadding: const EdgeInsets.symmetric(
+        vertical: InnvSpacing.sm,
+        horizontal: InnvSpacing.md,
+      ),
+      collapsedIconSize: InnvSpacing.xxl,
+      collapsedActiveItemDecoration: BoxDecoration(
+        color: c.brandContainer,
+        borderRadius: shape.chipRadius,
+      ),
+      collapsedInactiveItemDecoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: shape.chipRadius,
+      ),
+      badgeColor: c.danger.content,
+      badgeTextColor: badgeOn,
+      badgeTextStyle: type.numeric(type.labelSmall).copyWith(color: badgeOn),
+      stateAnimationDuration: motion.micro,
+      appearAnimationDuration: motion.enter,
     );
   }
 
@@ -422,6 +552,9 @@ extension InnovareSideMenuThemes on InnovareSideMenuStyle {
   static InnovareSideMenuStyle glassmorphism() {
     return InnovareSideMenuStyle(
       width: 280,
+      // Real frosted glass: blur whatever is rendered behind the rail. Best
+      // over a colorful gradient or image background.
+      backdropBlur: 20,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [

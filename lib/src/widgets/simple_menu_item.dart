@@ -24,6 +24,10 @@ class SimpleMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = item.isActive;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final stateDuration =
+        reduceMotion ? Duration.zero : style.stateAnimationDuration;
 
     final padding = isSubItem ? style.subItemPadding : style.itemPadding;
     final margin = isSubItem ? style.subItemMargin : style.itemMargin;
@@ -41,17 +45,13 @@ class SimpleMenuItem extends StatelessWidget {
             : style.inactiveItemDecoration);
 
     final textColor = isActive
-        ? (isSubItem
-            ? style.activeSubItemTextColor
-            : style.activeItemTextColor)
+        ? (isSubItem ? style.activeSubItemTextColor : style.activeItemTextColor)
         : (isSubItem
             ? style.inactiveSubItemTextColor
             : style.inactiveItemTextColor);
 
     final iconColor = isActive
-        ? (isSubItem
-            ? style.activeSubItemIconColor
-            : style.activeItemIconColor)
+        ? (isSubItem ? style.activeSubItemIconColor : style.activeItemIconColor)
         : (isSubItem
             ? style.inactiveSubItemIconColor
             : style.inactiveItemIconColor);
@@ -60,37 +60,57 @@ class SimpleMenuItem extends StatelessWidget {
         ? style.activeItemIconDecoration
         : style.inactiveItemIconDecoration;
 
-    final fontWeight = isActive
-        ? style.activeItemFontWeight
-        : style.inactiveItemFontWeight;
+    final fontWeight =
+        isActive ? style.activeItemFontWeight : style.inactiveItemFontWeight;
 
-    Widget tile = Container(
+    final baseTextStyle =
+        isSubItem ? style.subItemTextStyle : style.itemTextStyle;
+
+    final enabled = item.enabled;
+    final baseOnTap = enabled ? item.onTap : null;
+    final onTap = baseOnTap == null
+        ? null
+        : () {
+            if (style.enableHaptics) HapticFeedback.selectionClick();
+            baseOnTap();
+          };
+
+    Widget tile = AnimatedContainer(
+      duration: stateDuration,
+      curve: Curves.easeOutCubic,
       margin: margin,
       decoration: decoration,
       child: ListTile(
-        leading: item.customLeading ?? _buildLeading(
-          iconColor: iconColor,
-          iconSize: iconSize,
-          iconDecoration: iconDecoration,
-        ),
+        leading: item.customLeading ??
+            _buildLeading(
+              iconColor: iconColor,
+              iconSize: iconSize,
+              iconDecoration: iconDecoration,
+              duration: stateDuration,
+            ),
         title: AnimatedOpacity(
           opacity: isCollapsed ? 0.0 : 1.0,
           duration: transitionDuration,
-          child: Text(
-            item.title,
-            style: TextStyle(
+          child: AnimatedDefaultTextStyle(
+            duration: stateDuration,
+            curve: Curves.easeOutCubic,
+            style: (baseTextStyle ?? const TextStyle()).copyWith(
               color: textColor,
               fontSize: fontSize,
               fontWeight: fontWeight,
             ),
-            overflow: TextOverflow.ellipsis,
+            child: Text(
+              item.title,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
         trailing: isCollapsed ? null : item.trailing,
-        onTap: item.onTap,
+        onTap: onTap,
         hoverColor: style.itemHoverColor,
         contentPadding: padding,
         dense: true,
+        visualDensity: style.visualDensity,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius ?? BorderRadius.zero,
         ),
@@ -106,13 +126,18 @@ class SimpleMenuItem extends StatelessWidget {
     }
 
     return Semantics(
-      label: item.semanticLabel ?? item.title,
+      label: item.accessibleLabel,
       button: true,
+      enabled: enabled,
       selected: item.isActive,
-      child: _FocusableItem(
-        onTap: item.onTap,
-        style: style,
-        child: tile,
+      child: Opacity(
+        opacity: enabled ? 1.0 : style.disabledOpacity,
+        child: _InteractiveScale(
+          enabled: onTap != null,
+          pressedScale: style.pressedScale,
+          hoverScale: style.hoverScale,
+          child: tile,
+        ),
       ),
     );
   }
@@ -121,11 +146,25 @@ class SimpleMenuItem extends StatelessWidget {
     required Color? iconColor,
     required double? iconSize,
     required BoxDecoration? iconDecoration,
+    required Duration duration,
   }) {
-    final iconWidget = Container(
-      padding: isSubItem ? EdgeInsets.all(6) : style.itemIconPadding,
+    // TweenAnimationBuilder requires a non-null tween end, so only animate the
+    // color when one is provided; otherwise fall back to the ambient icon color.
+    final Widget iconChild = iconColor == null
+        ? Icon(item.icon, size: iconSize)
+        : TweenAnimationBuilder<Color?>(
+            duration: duration,
+            tween: ColorTween(end: iconColor),
+            builder: (context, color, _) =>
+                Icon(item.icon, color: color, size: iconSize),
+          );
+
+    final iconWidget = AnimatedContainer(
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      padding: isSubItem ? const EdgeInsets.all(6) : style.itemIconPadding,
       decoration: isSubItem ? null : iconDecoration,
-      child: Icon(item.icon, color: iconColor, size: iconSize),
+      child: iconChild,
     );
 
     if (item.badge == null) {
@@ -146,57 +185,83 @@ class SimpleMenuItem extends StatelessWidget {
   }
 }
 
-class _FocusableItem extends StatefulWidget {
-  final VoidCallback? onTap;
-  final InnovareSideMenuStyle style;
+/// Adds a tactile press (and optional hover) scale around an item.
+///
+/// Uses a raw [Listener] so it never competes with the tile's own tap gesture,
+/// and cancels the press if the pointer moves enough to start a scroll. Honors
+/// `MediaQuery.disableAnimations`.
+class _InteractiveScale extends StatefulWidget {
   final Widget child;
+  final bool enabled;
+  final double pressedScale;
+  final double hoverScale;
 
-  const _FocusableItem({
-    required this.onTap,
-    required this.style,
+  const _InteractiveScale({
     required this.child,
+    required this.enabled,
+    required this.pressedScale,
+    required this.hoverScale,
   });
 
   @override
-  State<_FocusableItem> createState() => _FocusableItemState();
+  State<_InteractiveScale> createState() => _InteractiveScaleState();
 }
 
-class _FocusableItemState extends State<_FocusableItem> {
-  bool _isFocused = false;
+class _InteractiveScaleState extends State<_InteractiveScale> {
+  bool _pressed = false;
+  bool _hovered = false;
+  Offset? _downPosition;
 
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.enter ||
-          event.logicalKey == LogicalKeyboardKey.space) {
-        widget.onTap?.call();
-        return KeyEventResult.handled;
-      }
-    }
-    return KeyEventResult.ignored;
+  void _setPressed(bool value) {
+    if (!mounted) return;
+    if (_pressed != value) setState(() => _pressed = value);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      onFocusChange: (focused) {
-        setState(() => _isFocused = focused);
-      },
-      onKeyEvent: _handleKeyEvent,
-      child: Builder(
-        builder: (context) {
-          if (!_isFocused) return widget.child;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
-              ),
-              borderRadius: widget.style.itemBorderRadius ?? BorderRadius.circular(4),
-            ),
-            position: DecorationPosition.foreground,
-            child: widget.child,
-          );
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    var scale = 1.0;
+    if (widget.enabled && !reduceMotion) {
+      if (_pressed) {
+        scale = widget.pressedScale;
+      } else if (_hovered) {
+        scale = widget.hoverScale;
+      }
+    }
+
+    final scaled = AnimatedScale(
+      scale: scale,
+      duration:
+          reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: widget.child,
+    );
+
+    if (!widget.enabled) return scaled;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() {
+        _hovered = false;
+        _pressed = false;
+      }),
+      child: Listener(
+        behavior: HitTestBehavior.deferToChild,
+        onPointerDown: (event) {
+          _downPosition = event.position;
+          _setPressed(true);
         },
+        onPointerMove: (event) {
+          if (_pressed &&
+              _downPosition != null &&
+              (event.position - _downPosition!).distance > 12) {
+            _setPressed(false);
+          }
+        },
+        onPointerUp: (_) => _setPressed(false),
+        onPointerCancel: (_) => _setPressed(false),
+        child: scaled,
       ),
     );
   }

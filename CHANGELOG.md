@@ -1,3 +1,67 @@
+## 1.1.0
+
+- Add `InnovareSideMenuThemes.fromInnovare(InnovareDesignTheme)` — derives the
+  menu style directly from the [Innovare Design System](https://github.com/innovare-tech/innovare_design)
+  tokens (brand color, corner shape, type scale, depth and motion personality),
+  so the menu re-skins per client from a single source of truth.
+- Add `innovare_design` as a dependency (used by the new factory), resolved from
+  its GitHub tag. This package is distributed via Git (not pub.dev), so
+  consumers get `innovare_design` transitively with no extra setup.
+- Raise minimum SDK to Dart 3.6 / Flutter 3.27 (required by `innovare_design`).
+- Motion: items now animate their active/hover state (decoration, label and
+  icon color crossfade) and cascade into view on first appearance. Honors
+  `MediaQuery.disableAnimations` (reduce motion). Tunable via new
+  `InnovareSideMenuStyle` fields `stateAnimationDuration`, `animateOnAppear`,
+  `appearAnimationDuration` and `appearStaggerInterval`. `fromInnovare` maps
+  these from the client's motion personality.
+- Tactile feedback: items respond to touch with a subtle press scale
+  (`pressedScale`, default 0.97), an optional hover scale (`hoverScale`) and a
+  selection haptic on tap (`enableHaptics`, default true) — including the
+  collapsed rail and expandable rows.
+- Fix (collapsed mode): selecting a sub-item in the fly-out popup now dismisses
+  the popup, and a collapsed parent reads as active while its popup is open or
+  when any of its sub-items is active.
+- Auto scroll-to-active: the menu reveals the active item on mount and whenever
+  it changes (`autoScrollToActive`, default true). Items keep stable keys so the
+  appearance animation never re-runs on selection changes.
+- Collapsible sections: set `collapsible: true` (and optional `initiallyExpanded`)
+  on an `InnovareSideMenuSection` to render a tappable header with a rotating
+  chevron that rolls its items in/out (expanded mode). Reduce-motion aware.
+- Hover-to-expand: set `expandOnHover: true` so a collapsed rail expands in place
+  while the pointer hovers it (desktop/web), revealing labels via the existing
+  width transition, then collapses on exit.
+- Responsive auto-rail: set `autoCollapseBelowWidth` so the menu auto-collapses
+  to a rail on narrow screens regardless of `mode`. For a mobile hamburger
+  drawer, place the menu inside `Scaffold.drawer`.
+- Accessibility/Semantics: optional `semanticsLabel` marks the menu as a labeled
+  navigation region (`explicitChildNodes`); items now announce their badge (e.g.
+  "Inbox, 12 notifications" / "Alerts, notification") via `accessibleLabel`.
+- Disabled items: `InnovareSideMenuItem(enabled: false)` dims the item
+  (`style.disabledOpacity`, default `0.38`), makes it non-focusable, ignores taps,
+  and marks it disabled to screen readers.
+- Loading & empty states: `isLoading` renders pulsing skeleton rows
+  (`loadingItemCount`, default 6; reduce-motion aware) and announces "Loading";
+  when there are no visible items the menu shows an empty placeholder, overridable
+  via `emptyState`.
+- Imperative control: pass an `InnovareSideMenuController` to collapse/expand the
+  rail (`collapse()` / `expand()` / `toggleCollapsed()`) and open/close
+  collapsible sections (`collapseSection` / `expandSection` / `toggleSection`)
+  from code — ideal for a hamburger button. When provided it overrides `mode` and
+  owns the section open/closed state; seed the initial state via its constructor.
+- Visual expression: `backdropBlur` renders the rail as real frosted glass
+  (a `BackdropFilter` clipped to its corners) over whatever is behind it — the
+  built-in `glassmorphism()` theme now uses it; `visualDensity` tunes item
+  spacing; and `itemTextStyle` / `subItemTextStyle` set a full base label
+  typography (active/inactive color, size and weight still layer on top).
+- Golden tests: visual-regression snapshots for the expanded rail (active item +
+  count/dot badges), the collapsed rail and the loading skeleton, under
+  `test/golden/`. Regenerate with `flutter test --update-goldens test/golden`.
+- Fixed a crash when the menu is disposed while the OS "reduce motion" /
+  "disable animations" setting is enabled: the per-item appear animation no
+  longer lazily creates its `AnimationController` (and `Ticker`) from
+  `dispose()`, which performed an unsafe `TickerMode` lookup on a deactivated
+  element.
+
 ## 1.0.1
 
 - Fix layout overflow errors during expanded/collapsed mode transitions
