@@ -42,6 +42,18 @@ class InnovareSideMenuItem {
   /// determine visibility. If `null`, the item is always visible.
   final String? permission;
 
+  /// Optional list of permissions evaluated with **OR semantics** —
+  /// the item is visible when [InnovareSideMenu.permissionChecker]
+  /// returns `true` for **at least one** of these keys.
+  ///
+  /// Use when the route behind the item is gated by an OR-set of
+  /// permissions (e.g. the admin dashboard of `prd-bolao-admin-panel`
+  /// which any one of 5 admin permissions can access). Mutually
+  /// exclusive with [permission] in the typical case — if both are
+  /// provided, **both** must pass (AND of `permission` with OR of
+  /// `permissionsAny`).
+  final List<String>? permissionsAny;
+
   /// Optional badge displayed on the item (count, dot, or custom).
   final InnovareSideMenuBadge? badge;
 
@@ -78,6 +90,7 @@ class InnovareSideMenuItem {
     this.trailing,
     this.customLeading,
     this.permission,
+    this.permissionsAny,
     this.badge,
     this.tooltip,
     this.semanticLabel,
@@ -96,6 +109,7 @@ class InnovareSideMenuItem {
     Widget? trailing,
     Widget? customLeading,
     String? permission,
+    List<String>? permissionsAny,
     InnovareSideMenuBadge? badge,
     String? tooltip,
     String? semanticLabel,
@@ -112,6 +126,7 @@ class InnovareSideMenuItem {
       trailing: trailing ?? this.trailing,
       customLeading: customLeading ?? this.customLeading,
       permission: permission ?? this.permission,
+      permissionsAny: permissionsAny ?? this.permissionsAny,
       badge: badge ?? this.badge,
       tooltip: tooltip ?? this.tooltip,
       semanticLabel: semanticLabel ?? this.semanticLabel,

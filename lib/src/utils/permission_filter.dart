@@ -15,6 +15,17 @@ bool shouldShowItem(
       !permissionChecker(item.permission!)) {
     return false;
   }
+  // `permissionsAny` aplica semântica **OR** — o item é exibido se
+  // **pelo menos uma** das permissões na lista for autorizada pelo
+  // [permissionChecker]. Quando `permission` E `permissionsAny` são
+  // fornecidos, AMBOS precisam passar (AND da `permission` única com
+  // o OR da lista).
+  if (item.permissionsAny != null &&
+      item.permissionsAny!.isNotEmpty &&
+      permissionChecker != null &&
+      !item.permissionsAny!.any(permissionChecker)) {
+    return false;
+  }
   return true;
 }
 
